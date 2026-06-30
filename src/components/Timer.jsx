@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useAppContext } from "../context/AppContext.jsx";
 
 const DEFAULT_MINUTES = 25;
-const MIN_MINUTES = 1;
+const DEFAULT_SECONDS = 0;
+const MIN_TOTAL_SECONDS = 1;
 const MAX_MINUTES = 180;
+const MAX_TOTAL_SECONDS = MAX_MINUTES * 60 + 59;
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
@@ -13,14 +15,27 @@ function formatTime(seconds) {
   return `${minutes}:${remainingSeconds}`;
 }
 
-function clampMinutes(value) {
-  const minutes = Number.parseInt(value, 10);
+function clampNumber(value, minimum, maximum) {
+  const number = Number.parseInt(value, 10);
 
-  if (Number.isNaN(minutes)) {
-    return MIN_MINUTES;
+  if (Number.isNaN(number)) {
+    return minimum;
   }
 
-  return Math.min(MAX_MINUTES, Math.max(MIN_MINUTES, minutes));
+  return Math.min(maximum, Math.max(minimum, number));
+}
+
+function normalizeDuration(minutes, seconds) {
+  const totalSeconds = Math.min(
+    MAX_TOTAL_SECONDS,
+    Math.max(MIN_TOTAL_SECONDS, minutes * 60 + seconds)
+  );
+
+  return {
+    minutes: Math.floor(totalSeconds / 60),
+    seconds: totalSeconds % 60,
+    totalSeconds,
+  };
 }
 
 function playAlarm(sound) {
@@ -61,9 +76,12 @@ function playAlarm(sound) {
 export default function Timer() {
   const { setMascotMood, setTimerGoal, settings, timerGoal } = useAppContext();
   const [durationMinutes, setDurationMinutes] = useState(DEFAULT_MINUTES);
-  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_MINUTES * 60);
+  const [durationSeconds, setDurationSeconds] = useState(DEFAULT_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(
+    DEFAULT_MINUTES * 60 + DEFAULT_SECONDS
+  );
   const [isRunning, setIsRunning] = useState(false);
-  const totalSeconds = durationMinutes * 60;
+  const totalSeconds = durationMinutes * 60 + durationSeconds;
 
   useEffect(() => {
     setSecondsLeft(totalSeconds);
@@ -94,21 +112,35 @@ export default function Timer() {
   }, [isRunning, setMascotMood, settings.alarmSound, settings.soundEnabled]);
 
   const progress = useMemo(
-    () => ((totalSeconds - secondsLeft) / totalSeconds) * 100,
+    () => ((totalSeconds - secondsLeft) / Math.max(totalSeconds, 1)) * 100,
     [secondsLeft, totalSeconds]
   );
 
-  const updateDuration = (value) => {
-    const nextMinutes = clampMinutes(value);
-    setDurationMinutes(nextMinutes);
+  const setDuration = (minutes, seconds) => {
+    const next = normalizeDuration(minutes, seconds);
+
+    setDurationMinutes(next.minutes);
+    setDurationSeconds(next.seconds);
 
     if (!isRunning) {
-      setSecondsLeft(nextMinutes * 60);
+      setSecondsLeft(next.totalSeconds);
     }
   };
 
-  const stepDuration = (step) => {
-    updateDuration(durationMinutes + step);
+  const updateMinutes = (value) => {
+    setDuration(clampNumber(value, 0, MAX_MINUTES), durationSeconds);
+  };
+
+  const updateSeconds = (value) => {
+    setDuration(durationMinutes, clampNumber(value, 0, 59));
+  };
+
+  const stepMinutes = (step) => {
+    setDuration(durationMinutes + step, durationSeconds);
+  };
+
+  const stepSeconds = (step) => {
+    setDuration(durationMinutes, durationSeconds + step);
   };
 
   const start = () => {
@@ -156,48 +188,94 @@ export default function Timer() {
         <div className="text-6xl font-black tabular-nums">
           {formatTime(secondsLeft)}
         </div>
-        <div className="mx-auto mt-5 flex max-w-xs items-center justify-center gap-2 rounded-full bg-white/10 p-2">
-          <button
-            aria-label="Decrease focus minutes"
-            className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl font-black disabled:opacity-40"
-            disabled={isRunning}
-            onClick={() => stepDuration(-1)}
-            type="button"
-          >
-            ↓
-          </button>
-          <label className="min-w-0 flex-1 text-left text-xs font-black uppercase tracking-wide text-rose-100">
-            Minutes
-            <input
-              className="mt-1 w-full rounded-full border border-white/20 bg-white px-4 py-2 text-center text-lg font-black text-stone-900 outline-none focus:border-emerald-300 disabled:opacity-70"
+        <div className="mx-auto mt-5 grid max-w-sm grid-cols-1 gap-3 rounded-[1.5rem] bg-white/10 p-3 sm:grid-cols-2">
+          <div className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2">
+            <button
+              aria-label="Decrease focus minutes"
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl font-black disabled:opacity-40"
               disabled={isRunning}
-              max={MAX_MINUTES}
-              min={MIN_MINUTES}
-              onChange={(event) => updateDuration(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "ArrowUp") {
-                  event.preventDefault();
-                  stepDuration(1);
-                }
+              onClick={() => stepMinutes(-1)}
+              type="button"
+            >
+              &darr;
+            </button>
+            <label className="min-w-0 text-left text-xs font-black uppercase tracking-wide text-rose-100">
+              Minutes
+              <input
+                className="mt-1 w-full rounded-full border border-white/20 bg-white px-3 py-2 text-center text-lg font-black text-stone-900 outline-none focus:border-emerald-300 disabled:opacity-70"
+                disabled={isRunning}
+                max={MAX_MINUTES}
+                min={0}
+                onChange={(event) => updateMinutes(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    stepMinutes(1);
+                  }
 
-                if (event.key === "ArrowDown") {
-                  event.preventDefault();
-                  stepDuration(-1);
-                }
-              }}
-              type="number"
-              value={durationMinutes}
-            />
-          </label>
-          <button
-            aria-label="Increase focus minutes"
-            className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl font-black disabled:opacity-40"
-            disabled={isRunning}
-            onClick={() => stepDuration(1)}
-            type="button"
-          >
-            ↑
-          </button>
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    stepMinutes(-1);
+                  }
+                }}
+                type="number"
+                value={durationMinutes}
+              />
+            </label>
+            <button
+              aria-label="Increase focus minutes"
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl font-black disabled:opacity-40"
+              disabled={isRunning}
+              onClick={() => stepMinutes(1)}
+              type="button"
+            >
+              &uarr;
+            </button>
+          </div>
+
+          <div className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2">
+            <button
+              aria-label="Decrease focus seconds"
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl font-black disabled:opacity-40"
+              disabled={isRunning}
+              onClick={() => stepSeconds(-1)}
+              type="button"
+            >
+              &darr;
+            </button>
+            <label className="min-w-0 text-left text-xs font-black uppercase tracking-wide text-rose-100">
+              Seconds
+              <input
+                className="mt-1 w-full rounded-full border border-white/20 bg-white px-3 py-2 text-center text-lg font-black text-stone-900 outline-none focus:border-emerald-300 disabled:opacity-70"
+                disabled={isRunning}
+                max={59}
+                min={0}
+                onChange={(event) => updateSeconds(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    stepSeconds(1);
+                  }
+
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    stepSeconds(-1);
+                  }
+                }}
+                type="number"
+                value={durationSeconds}
+              />
+            </label>
+            <button
+              aria-label="Increase focus seconds"
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl font-black disabled:opacity-40"
+              disabled={isRunning}
+              onClick={() => stepSeconds(1)}
+              type="button"
+            >
+              &uarr;
+            </button>
+          </div>
         </div>
         <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/15">
           <div
