@@ -64,6 +64,7 @@ export function getSettings() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Local",
     soundEnabled: true,
     notificationsEnabled: false,
+    alarmSound: "bambooBell",
   });
 }
 

@@ -1,12 +1,33 @@
 import { useAppContext } from "../context/AppContext.jsx";
 
 const timezones = [
-  "Local",
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "UTC",
+  { label: "Local browser time", value: "Local" },
+  { label: "New York, Toronto, Montreal, Miami", value: "America/New_York" },
+  { label: "Chicago, Dallas, Mexico City, Winnipeg", value: "America/Chicago" },
+  { label: "Denver, Phoenix, Calgary, Edmonton", value: "America/Denver" },
+  { label: "Los Angeles, Vancouver, Seattle, Tijuana", value: "America/Los_Angeles" },
+  { label: "Anchorage, Fairbanks", value: "America/Anchorage" },
+  { label: "Honolulu", value: "Pacific/Honolulu" },
+  { label: "Halifax, Moncton", value: "America/Halifax" },
+  { label: "St. John's", value: "America/St_Johns" },
+  { label: "Regina, Saskatoon", value: "America/Regina" },
+  { label: "Guatemala City, San Salvador, Managua", value: "America/Guatemala" },
+  { label: "San Jose, Costa Rica", value: "America/Costa_Rica" },
+  { label: "Panama City", value: "America/Panama" },
+  { label: "Havana", value: "America/Havana" },
+  { label: "Santo Domingo", value: "America/Santo_Domingo" },
+  { label: "San Juan", value: "America/Puerto_Rico" },
+  { label: "Kingston, Jamaica", value: "America/Jamaica" },
+  { label: "Nassau", value: "America/Nassau" },
+  { label: "UTC", value: "UTC" },
+];
+
+const alarmSounds = [
+  { label: "Bamboo Bell", value: "bambooBell" },
+  { label: "Panda Chime", value: "pandaChime" },
+  { label: "Forest Bells", value: "forestBells" },
+  { label: "Soft Gong", value: "softGong" },
+  { label: "Tiny Sparkle", value: "tinySparkle" },
 ];
 
 export default function Settings() {
@@ -34,8 +55,27 @@ export default function Settings() {
             value={settings.timezone}
           >
             {timezones.map((timezone) => (
-              <option key={timezone} value={timezone}>
-                {timezone}
+              <option key={timezone.value} value={timezone.value}>
+                {timezone.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="rounded-3xl bg-white p-4 ring-1 ring-stone-200">
+          <span className="block text-sm font-black text-stone-700">
+            Alarm sound
+          </span>
+          <select
+            className="mt-2 w-full rounded-2xl border border-stone-200 bg-[#fff8ef] px-4 py-3 font-bold outline-none focus:border-stone-900"
+            onChange={(event) =>
+              updateSettings({ alarmSound: event.target.value })
+            }
+            value={settings.alarmSound || "bambooBell"}
+          >
+            {alarmSounds.map((sound) => (
+              <option key={sound.value} value={sound.value}>
+                {sound.label}
               </option>
             ))}
           </select>
