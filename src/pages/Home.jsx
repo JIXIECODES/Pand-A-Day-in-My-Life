@@ -2,18 +2,17 @@ import React, { useMemo, useState } from "react";
 import DailyReward from "../components/DailyReward.jsx";
 import FocusTimer from "../components/FocusTimer.jsx";
 import GoalModal from "../components/GoalModal.jsx";
+import HomeGoals from "../components/HomeGoals.jsx";
 import PandaCompanion from "../components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../components/PandaMoodDisplay.jsx";
 import ProgressBar from "../components/ProgressBar.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
-import { greetingForNow, todayKey } from "../utils/dateUtils.js";
+import { greetingForNow } from "../utils/dateUtils.js";
 import { xpForNextLevel } from "../utils/pandaLogic.js";
 
 export default function Home() {
-  const { goalsByDate, journalEntries, pandaStats, setSelectedDate, toggleGoal } = useAppContext();
+  const { journalEntries, pandaStats } = useAppContext();
   const [modalOpen, setModalOpen] = useState(false);
-  const today = todayKey();
-  const todaysGoals = goalsByDate[today] || [];
   const latestMemory = useMemo(() => {
     const entries = Object.entries(journalEntries).sort(([a], [b]) => b.localeCompare(a));
     return entries[0];
@@ -39,37 +38,7 @@ export default function Home() {
           </div>
         </div>
 
-        <section className="rounded-[2rem] bg-white/75 p-5 shadow-xl shadow-zinc-200/60">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase text-pink-500">Today</p>
-              <h2 className="text-2xl font-black text-zinc-950">Goals for this fresh bamboo day</h2>
-            </div>
-            <button
-              className="rounded-full bg-zinc-950 px-4 py-2 font-black text-white"
-              onClick={() => {
-                setSelectedDate(today);
-                setModalOpen(true);
-              }}
-              type="button"
-            >
-              Add
-            </button>
-          </div>
-          <div className="space-y-2">
-            {todaysGoals.length > 0 ? (
-              todaysGoals.map((goal) => (
-                <label className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-3" key={goal.id}>
-                  <input checked={goal.completed} className="size-5 accent-emerald-500" onChange={() => toggleGoal(today, goal.id)} type="checkbox" />
-                  <span className={`font-black text-zinc-800 ${goal.completed ? "line-through" : ""}`}>{goal.title}</span>
-                  <span className="ml-auto rounded-full bg-pink-100 px-3 py-1 text-xs font-black text-pink-700">{goal.difficulty || "easy"}</span>
-                </label>
-              ))
-            ) : (
-              <p className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">No pressure. Add one tiny goal when you are ready.</p>
-            )}
-          </div>
-        </section>
+        <HomeGoals onAddGoal={() => setModalOpen(true)} />
 
       </section>
 

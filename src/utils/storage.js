@@ -36,7 +36,16 @@ export function resetAllData() {
 }
 
 export function getAllGoals() {
-  return getData(STORAGE_KEYS.goals, {});
+  const goals = getData(STORAGE_KEYS.goals, {});
+  return Object.fromEntries(
+    Object.entries(goals).map(([date, dayGoals]) => [
+      date,
+      (dayGoals || []).map((goal) => ({
+        ...goal,
+        xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
+      })),
+    ]),
+  );
 }
 
 export function getGoals(date) {
@@ -58,6 +67,7 @@ export function saveGoal(date, goal) {
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
     completed: false,
+    xpAwarded: false,
     createdAt: new Date().toISOString(),
   };
 
@@ -101,7 +111,10 @@ export function getPandaStats() {
 }
 
 export function getScheduledGoals() {
-  return getData(STORAGE_KEYS.scheduledGoals, []);
+  return getData(STORAGE_KEYS.scheduledGoals, []).map((goal) => ({
+    ...goal,
+    xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
+  }));
 }
 
 export function saveScheduledGoal(goal) {
@@ -114,6 +127,7 @@ export function saveScheduledGoal(goal) {
     endTime: goal.endTime,
     category: goal.category || "Personal",
     completed: Boolean(goal.completed),
+    xpAwarded: Boolean(goal.xpAwarded),
     createdAt: new Date().toISOString(),
   };
 

@@ -5,6 +5,7 @@ import { outfits } from "../data/outfits.js";
 import { evaluateAchievements } from "../utils/achievementLogic.js";
 import { todayKey } from "../utils/dateUtils.js";
 import {
+  celebrateAlreadyAwardedGoal,
   completeGoalStats,
   focusFinishedStats,
   focusStartedStats,
@@ -126,6 +127,7 @@ export function AppProvider({ children }) {
         endTime: goal.endTime,
         category: goal.category || "Personal",
         completed: false,
+        xpAwarded: false,
       });
       setScheduledGoals(getScheduledGoals());
     }
@@ -154,11 +156,22 @@ export function AppProvider({ children }) {
     const goal = scheduledGoals.find((item) => item.id === id);
     if (!goal) return;
 
-    const nextScheduledGoals = updateScheduledGoal(id, { completed: !goal.completed });
+    if (!goal.completed) {
+      const confirmed = window.confirm("Are you sure this goal is truly completed?");
+      if (!confirmed) return;
+    }
+
+    const completingForFirstTime = !goal.completed && !goal.xpAwarded;
+    const nextScheduledGoals = updateScheduledGoal(id, {
+      completed: !goal.completed,
+      xpAwarded: goal.xpAwarded || !goal.completed,
+    });
     setScheduledGoals(nextScheduledGoals);
 
-    if (!goal.completed) {
+    if (completingForFirstTime) {
       persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: "medium" }, false));
+    } else if (!goal.completed) {
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
     } else {
       persistStats(withMood(pandaStats, "idle", "Scheduled goal unchecked"));
     }
@@ -173,13 +186,24 @@ export function AppProvider({ children }) {
     const goal = (goalsByDate[date] || []).find((item) => item.id === id);
     if (!goal) return;
 
-    updateGoal(date, id, { completed: !goal.completed });
+    if (!goal.completed) {
+      const confirmed = window.confirm("Are you sure this goal is truly completed?");
+      if (!confirmed) return;
+    }
+
+    const completingForFirstTime = !goal.completed && !goal.xpAwarded;
+    updateGoal(date, id, {
+      completed: !goal.completed,
+      xpAwarded: goal.xpAwarded || !goal.completed,
+    });
     const nextGoals = getAllGoals();
     setGoalsByDate(nextGoals);
 
-    if (!goal.completed) {
+    if (completingForFirstTime) {
       const allDone = (nextGoals[date] || []).length > 0 && nextGoals[date].every((item) => item.completed);
       persistStats(completeGoalStats(pandaStats, goal, allDone), nextGoals);
+    } else if (!goal.completed) {
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats), nextGoals);
     } else {
       persistStats(withMood(pandaStats, "idle", "Goal unchecked"), nextGoals);
     }
@@ -214,10 +238,11 @@ export function AppProvider({ children }) {
     let nextStats = focusFinishedStats(pandaStats);
 
     if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
-      updateGoal(timerGoal.date, timerGoal.id, { completed: true });
+      const firstAward = !timerGoal.xpAwarded;
+      updateGoal(timerGoal.date, timerGoal.id, { completed: true, xpAwarded: true });
       nextGoals = getAllGoals();
       setGoalsByDate(nextGoals);
-      nextStats = completeGoalStats(nextStats, timerGoal, false);
+      nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
       setTimerGoal({ ...timerGoal, completed: true });
     }
 

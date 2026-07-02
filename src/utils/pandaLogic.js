@@ -78,6 +78,17 @@ export function completeGoalStats(stats, goal, completedAllDailyGoals = false) {
   return withMood(next, next.mood === "levelUp" ? "levelUp" : "happy", "Goal completed");
 }
 
+export function celebrateAlreadyAwardedGoal(stats) {
+  return withMood(
+    {
+      ...stats,
+      happiness: clampStat(stats.happiness + 2),
+    },
+    "happy",
+    "Goal completed again",
+  );
+}
+
 export function missDeadlineStats(stats) {
   return withMood(
     {

@@ -9,7 +9,7 @@ export const decorations = [
   {
     id: "cozy-lamp",
     name: "Cozy lamp",
-    icon: "🛋️",
+    icon: "💡",
     condition: "Claim a daily reward",
     requirement: { type: "dailyRewards", value: 1 },
   },
