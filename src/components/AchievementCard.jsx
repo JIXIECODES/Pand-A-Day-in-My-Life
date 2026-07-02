@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function AchievementCard({ achievement, unlocked }) {
   return (
     <article className={`rounded-2xl border p-4 shadow-sm ${unlocked ? "border-emerald-200 bg-emerald-50" : "border-white bg-white/70"}`}>

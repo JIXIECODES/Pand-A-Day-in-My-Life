@@ -1,3 +1,4 @@
+import React from "react";
 import { decorations } from "../data/decorations.js";
 import { useAppContext } from "../context/AppContext.jsx";
 import { getSeason, getSeasonTheme } from "../utils/seasonUtils.js";

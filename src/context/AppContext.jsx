@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
-import { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { decorations } from "../data/decorations.js";
 import { outfits } from "../data/outfits.js";
 import { evaluateAchievements } from "../utils/achievementLogic.js";
-import { formatDate, todayKey } from "../utils/dateUtils.js";
+import { todayKey } from "../utils/dateUtils.js";
 import {
   completeGoalStats,
   focusFinishedStats,
@@ -14,16 +14,20 @@ import {
 import { canClaimDailyReward, claimDailyReward } from "../utils/rewardLogic.js";
 import {
   deleteGoal,
+  deleteScheduledGoal,
   getAllGoals,
   getData,
   getPandaStats,
+  getScheduledGoals,
   getSettings,
   resetAllData,
   saveData,
   saveGoal,
+  saveScheduledGoal,
   saveSettings,
   STORAGE_KEYS,
   updateGoal,
+  updateScheduledGoal,
 } from "../utils/storage.js";
 
 const AppContext = createContext(null);
@@ -60,6 +64,7 @@ function unlockByRequirements(items, stats, currentIds) {
 export function AppProvider({ children }) {
   const [activePage, setActivePage] = useState("home");
   const [goalsByDate, setGoalsByDate] = useState(() => getAllGoals());
+  const [scheduledGoals, setScheduledGoals] = useState(() => getScheduledGoals());
   const [journalEntries, setJournalEntries] = useState(() =>
     getData(STORAGE_KEYS.journalEntries, {}),
   );
@@ -113,6 +118,17 @@ export function AppProvider({ children }) {
 
   function addGoal(date, goal) {
     const saved = saveGoal(date, goal);
+    if (goal.startTime && goal.endTime) {
+      saveScheduledGoal({
+        title: goal.title,
+        date,
+        startTime: goal.startTime,
+        endTime: goal.endTime,
+        category: goal.category || "Personal",
+        completed: false,
+      });
+      setScheduledGoals(getScheduledGoals());
+    }
     setGoalsByDate(getAllGoals());
     persistStats(withMood(pandaStats, "idle", "New goal added"));
     return saved;
@@ -121,6 +137,36 @@ export function AppProvider({ children }) {
   function editGoal(date, id, updates) {
     updateGoal(date, id, updates);
     setGoalsByDate(getAllGoals());
+  }
+
+  function addScheduledGoal(goal) {
+    const saved = saveScheduledGoal(goal);
+    setScheduledGoals(getScheduledGoals());
+    persistStats(withMood(pandaStats, "idle", "Scheduled goal added"));
+    return saved;
+  }
+
+  function editScheduledGoal(id, updates) {
+    setScheduledGoals(updateScheduledGoal(id, updates));
+  }
+
+  function toggleScheduledGoal(id) {
+    const goal = scheduledGoals.find((item) => item.id === id);
+    if (!goal) return;
+
+    const nextScheduledGoals = updateScheduledGoal(id, { completed: !goal.completed });
+    setScheduledGoals(nextScheduledGoals);
+
+    if (!goal.completed) {
+      persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: "medium" }, false));
+    } else {
+      persistStats(withMood(pandaStats, "idle", "Scheduled goal unchecked"));
+    }
+  }
+
+  function removeScheduledGoal(id) {
+    setScheduledGoals(deleteScheduledGoal(id));
+    persistStats(withMood(pandaStats, "idle", "Scheduled goal removed"));
   }
 
   function toggleGoal(date, id) {
@@ -164,7 +210,19 @@ export function AppProvider({ children }) {
   }
 
   function finishFocusTimer() {
-    persistStats(focusFinishedStats(pandaStats));
+    let nextGoals = goalsByDate;
+    let nextStats = focusFinishedStats(pandaStats);
+
+    if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
+      updateGoal(timerGoal.date, timerGoal.id, { completed: true });
+      nextGoals = getAllGoals();
+      setGoalsByDate(nextGoals);
+      nextStats = completeGoalStats(nextStats, timerGoal, false);
+      setTimerGoal({ ...timerGoal, completed: true });
+    }
+
+    persistStats(nextStats, nextGoals);
+    setToast(timerGoal ? `Focus finished: ${timerGoal.title} is complete` : "Focus timer complete");
   }
 
   function claimReward() {
@@ -196,6 +254,7 @@ export function AppProvider({ children }) {
     setUnlockedOutfits([]);
     setUnlockedDecorations([]);
     setUnlockedAchievements([]);
+    setScheduledGoals([]);
     setDailyRewards({ lastClaimedDate: "", lastReward: null });
     setEquippedOutfit("");
     setToast("Local panda data reset");
@@ -205,12 +264,14 @@ export function AppProvider({ children }) {
     () => ({
       activePage,
       addGoal,
+      addScheduledGoal,
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
       clearToast: () => setToast(""),
       currentMonth,
       dailyRewards,
       editGoal,
+      editScheduledGoal,
       equipOutfit,
       equippedOutfit,
       finishFocusTimer,
@@ -219,7 +280,9 @@ export function AppProvider({ children }) {
       pandaStats,
       removeGoal,
       resetAppData,
+      removeScheduledGoal,
       saveJournalEntry,
+      scheduledGoals,
       selectedDate,
       setActivePage,
       setCurrentMonth,
@@ -230,6 +293,7 @@ export function AppProvider({ children }) {
       timerGoal,
       toast,
       toggleGoal,
+      toggleScheduledGoal,
       unlockedAchievements,
       unlockedDecorations,
       unlockedOutfits,
@@ -243,6 +307,7 @@ export function AppProvider({ children }) {
       goalsByDate,
       journalEntries,
       pandaStats,
+      scheduledGoals,
       selectedDate,
       settings,
       timerGoal,

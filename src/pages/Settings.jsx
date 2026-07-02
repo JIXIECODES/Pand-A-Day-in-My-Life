@@ -1,4 +1,6 @@
+import React from "react";
 import { useAppContext } from "../context/AppContext.jsx";
+import TimerSettings from "../components/TimerSettings.jsx";
 
 const timezones = [
   "Local",
@@ -56,6 +58,10 @@ export default function Settings() {
               <option value="winter">Winter</option>
             </select>
           </label>
+
+          <div className="rounded-3xl bg-zinc-950 p-4">
+            <TimerSettings />
+          </div>
 
           <div className="rounded-3xl bg-rose-50 p-4">
             <h2 className="font-black text-rose-900">Reset local data</h2>

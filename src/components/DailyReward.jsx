@@ -1,3 +1,4 @@
+import React from "react";
 import { useAppContext } from "../context/AppContext.jsx";
 
 export default function DailyReward() {

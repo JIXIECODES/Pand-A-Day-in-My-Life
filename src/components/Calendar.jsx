@@ -1,10 +1,11 @@
 import dayjs from "dayjs";
+import React from "react";
 import { useAppContext } from "../context/AppContext.jsx";
 import { getMonthDays, weekdayLabels } from "../utils/dateUtils.js";
 import DayCell from "./DayCell.jsx";
 
 export default function Calendar({ onOpenDay }) {
-  const { currentMonth, goalsByDate, setCurrentMonth, setSelectedDate } = useAppContext();
+  const { currentMonth, goalsByDate, scheduledGoals, setCurrentMonth, setSelectedDate } = useAppContext();
   const days = getMonthDays(currentMonth);
 
   function openDay(dateKey) {
@@ -21,13 +22,13 @@ export default function Calendar({ onOpenDay }) {
         </div>
         <div className="flex items-center gap-2">
           <button className="rounded-full bg-white px-4 py-2 font-black shadow-sm" onClick={() => setCurrentMonth(currentMonth.subtract(1, "month"))} type="button">
-            ←
+            Prev
           </button>
           <button className="rounded-full bg-zinc-950 px-4 py-2 font-black text-white shadow-sm" onClick={() => setCurrentMonth(dayjs())} type="button">
             Today
           </button>
           <button className="rounded-full bg-white px-4 py-2 font-black shadow-sm" onClick={() => setCurrentMonth(currentMonth.add(1, "month"))} type="button">
-            →
+            Next
           </button>
         </div>
       </div>
@@ -47,6 +48,7 @@ export default function Calendar({ onOpenDay }) {
               isCurrentMonth={day.isSame(currentMonth, "month")}
               key={key}
               onSelect={openDay}
+              scheduledGoals={scheduledGoals.filter((goal) => goal.date === key)}
             />
           );
         })}

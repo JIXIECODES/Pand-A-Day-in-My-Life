@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext.jsx";
 import { isPastDeadline } from "../utils/dateUtils.js";
 
@@ -8,6 +8,9 @@ const emptyForm = {
   description: "",
   note: "",
   deadline: "",
+  startTime: "",
+  endTime: "",
+  category: "Personal",
   difficulty: "easy",
 };
 
@@ -66,6 +69,9 @@ export default function GoalModal({ open, onClose }) {
       description: goal.description || "",
       note: goal.note || "",
       deadline: goal.deadline || "",
+      startTime: goal.startTime || "",
+      endTime: goal.endTime || "",
+      category: goal.category || "Personal",
       difficulty: goal.difficulty || "easy",
     });
   }
@@ -101,6 +107,26 @@ export default function GoalModal({ open, onClose }) {
                 </select>
               </label>
             </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="text-sm font-black text-zinc-600">
+                Start
+                <input className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300" name="startTime" onChange={updateField} type="time" value={form.startTime} />
+              </label>
+              <label className="text-sm font-black text-zinc-600">
+                End
+                <input className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300" name="endTime" onChange={updateField} type="time" value={form.endTime} />
+              </label>
+              <label className="text-sm font-black text-zinc-600">
+                Category
+                <select className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300" name="category" onChange={updateField} value={form.category}>
+                  <option>Personal</option>
+                  <option>School</option>
+                  <option>Work</option>
+                  <option>Health</option>
+                  <option>Creative</option>
+                </select>
+              </label>
+            </div>
             <textarea className="min-h-24 w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300" name="note" onChange={updateField} placeholder="Notes for this day" value={form.note} />
             <button className="w-full rounded-full bg-zinc-950 px-5 py-3 font-black text-white" type="submit">
               {editingId ? "Save changes" : "Add goal"}
@@ -122,6 +148,11 @@ export default function GoalModal({ open, onClose }) {
                         <p className="mt-1 text-xs font-black uppercase text-pink-500">{goal.difficulty || "easy"} goal</p>
                         {goal.description && <p className="mt-2 text-sm font-semibold text-zinc-600">{goal.description}</p>}
                         {goal.deadline && <p className="mt-2 text-xs font-black text-zinc-500">Deadline {goal.deadline}</p>}
+                        {goal.startTime && goal.endTime && (
+                          <p className="mt-2 text-xs font-black text-sky-600">
+                            Scheduled {goal.startTime} - {goal.endTime} · {goal.category || "Personal"}
+                          </p>
+                        )}
                         {gentleMiss && <p className="mt-2 rounded-2xl bg-sky-100 p-3 text-sm font-bold text-sky-700">Panda is a little sleepy with this deadline, but tomorrow is fresh.</p>}
                         {goal.note && <p className="mt-2 rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-600">{goal.note}</p>}
                       </div>

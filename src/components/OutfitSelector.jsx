@@ -1,3 +1,4 @@
+import React from "react";
 import { outfits } from "../data/outfits.js";
 import { useAppContext } from "../context/AppContext.jsx";
 

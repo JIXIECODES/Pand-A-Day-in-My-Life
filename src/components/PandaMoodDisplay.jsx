@@ -1,3 +1,4 @@
+import React from "react";
 import { pandaMoods } from "../data/pandaMoods.js";
 import { useAppContext } from "../context/AppContext.jsx";
 

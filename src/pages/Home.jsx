@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
-import Calendar from "../components/Calendar.jsx";
+import React, { useMemo, useState } from "react";
 import DailyReward from "../components/DailyReward.jsx";
+import FocusTimer from "../components/FocusTimer.jsx";
 import GoalModal from "../components/GoalModal.jsx";
 import PandaCompanion from "../components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../components/PandaMoodDisplay.jsx";
 import ProgressBar from "../components/ProgressBar.jsx";
-import Timer from "../components/Timer.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { greetingForNow, todayKey } from "../utils/dateUtils.js";
 import { xpForNextLevel } from "../utils/pandaLogic.js";
@@ -72,11 +71,10 @@ export default function Home() {
           </div>
         </section>
 
-        <Calendar onOpenDay={() => setModalOpen(true)} />
       </section>
 
       <aside className="space-y-5">
-        <Timer />
+        <FocusTimer />
         <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
           <ProgressBar label={`Level ${pandaStats.level} XP`} value={pandaStats.xp} max={xpForNextLevel(pandaStats.level)} tone="pink" />
         </section>

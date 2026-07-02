@@ -1,3 +1,4 @@
+import React from "react";
 import DecorationShelf from "../components/DecorationShelf.jsx";
 import OutfitSelector from "../components/OutfitSelector.jsx";
 import PandaMoodDisplay from "../components/PandaMoodDisplay.jsx";

@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function ProgressBar({ label, value, max = 100, tone = "emerald" }) {
   const percent = Math.min(100, Math.max(0, (value / Math.max(max, 1)) * 100));
   const color = {

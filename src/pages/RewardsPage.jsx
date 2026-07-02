@@ -1,3 +1,4 @@
+import React from "react";
 import { achievements } from "../data/achievements.js";
 import AchievementCard from "../components/AchievementCard.jsx";
 import DailyReward from "../components/DailyReward.jsx";

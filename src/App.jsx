@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import Navbar from "./components/Navbar.jsx";
 import { AppProvider, useAppContext } from "./context/AppContext.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";

@@ -1,6 +1,7 @@
+import React from "react";
 import { isPastDeadline, todayKey } from "../utils/dateUtils.js";
 
-export default function DayCell({ day, goals, isCurrentMonth, onSelect }) {
+export default function DayCell({ day, goals, isCurrentMonth, onSelect, scheduledGoals = [] }) {
   const dateKey = day.format("YYYY-MM-DD");
   const completed = goals.filter((goal) => goal.completed).length;
   const hasGentleMiss = goals.some((goal) => !goal.completed && isPastDeadline(dateKey, goal.deadline));
@@ -35,6 +36,12 @@ export default function DayCell({ day, goals, isCurrentMonth, onSelect }) {
           </div>
         ))}
         {goals.length > 2 && <p className="text-xs font-black text-zinc-400">+{goals.length - 2} more</p>}
+        {scheduledGoals.slice(0, 2).map((goal) => (
+          <div className="truncate rounded-lg bg-sky-100 px-2 py-1 text-xs font-bold text-sky-700" key={goal.id}>
+            {goal.startTime} {goal.title}
+          </div>
+        ))}
+        {scheduledGoals.length > 2 && <p className="text-xs font-black text-sky-500">+{scheduledGoals.length - 2} blocks</p>}
         {hasGentleMiss && <p className="rounded-lg bg-sky-100 px-2 py-1 text-xs font-bold text-sky-700">Panda is resting with this one</p>}
       </div>
     </button>

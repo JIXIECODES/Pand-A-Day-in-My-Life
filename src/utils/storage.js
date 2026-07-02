@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   settings: "panda-day-settings",
   dailyRewards: "panda-day-daily-rewards",
   equippedOutfit: "panda-day-equipped-outfit",
+  scheduledGoals: "panda-day-scheduled-goals",
 };
 
 export function getData(key, fallback) {
@@ -47,10 +48,14 @@ export function saveGoal(date, goal) {
   const dayGoals = goals[date] || [];
   const nextGoal = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
+    date,
     title: goal.title,
     description: goal.description || "",
     note: goal.note || "",
     deadline: goal.deadline || "",
+    startTime: goal.startTime || "",
+    endTime: goal.endTime || "",
+    category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
     completed: false,
     createdAt: new Date().toISOString(),
@@ -83,6 +88,7 @@ export function getSettings() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Local",
     notificationsEnabled: false,
     theme: "seasonal",
+    timerDurationMinutes: 25,
   });
 }
 
@@ -92,4 +98,39 @@ export function saveSettings(settings) {
 
 export function getPandaStats() {
   return { ...DEFAULT_PANDA_STATS, ...getData(STORAGE_KEYS.pandaStats, DEFAULT_PANDA_STATS) };
+}
+
+export function getScheduledGoals() {
+  return getData(STORAGE_KEYS.scheduledGoals, []);
+}
+
+export function saveScheduledGoal(goal) {
+  const scheduledGoals = getScheduledGoals();
+  const nextGoal = {
+    id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
+    title: goal.title,
+    date: goal.date,
+    startTime: goal.startTime,
+    endTime: goal.endTime,
+    category: goal.category || "Personal",
+    completed: Boolean(goal.completed),
+    createdAt: new Date().toISOString(),
+  };
+
+  saveData(STORAGE_KEYS.scheduledGoals, [...scheduledGoals, nextGoal]);
+  return nextGoal;
+}
+
+export function updateScheduledGoal(id, updates = {}) {
+  const scheduledGoals = getScheduledGoals().map((goal) =>
+    goal.id === id ? { ...goal, ...updates } : goal,
+  );
+  saveData(STORAGE_KEYS.scheduledGoals, scheduledGoals);
+  return scheduledGoals;
+}
+
+export function deleteScheduledGoal(id) {
+  const scheduledGoals = getScheduledGoals().filter((goal) => goal.id !== id);
+  saveData(STORAGE_KEYS.scheduledGoals, scheduledGoals);
+  return scheduledGoals;
 }
