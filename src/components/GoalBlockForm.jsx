@@ -3,15 +3,13 @@ import { useAppContext } from "../context/AppContext.jsx";
 
 const emptyForm = {
   title: "",
-  description: "",
-  note: "",
   startTime: "09:00",
   endTime: "10:00",
   category: "Personal",
-  difficulty: "medium",
 };
 
-const hourOptions = Array.from({ length: 25 }, (_, hour) => {
+const hourOptions = Array.from({ length: 16 }, (_, index) => {
+  const hour = index + 6;
   const value = `${hour.toString().padStart(2, "0")}:00`;
   const date = new Date();
   date.setHours(hour, 0, 0, 0);
@@ -22,19 +20,16 @@ const hourOptions = Array.from({ length: 25 }, (_, hour) => {
 });
 
 export default function GoalBlockForm({ date, editingGoal, onDone }) {
-  const { addScheduledGoal, editScheduledGoal, removeScheduledGoal } = useAppContext();
+  const { addScheduledGoal, editScheduledGoal } = useAppContext();
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
     if (editingGoal) {
       setForm({
         title: editingGoal.title,
-        description: editingGoal.description || "",
-        note: editingGoal.note || "",
         startTime: editingGoal.startTime,
         endTime: editingGoal.endTime,
         category: editingGoal.category,
-        difficulty: editingGoal.difficulty || "medium",
       });
     } else {
       setForm(emptyForm);
@@ -62,12 +57,6 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
     onDone();
   }
 
-  function deleteEditingGoal() {
-    if (!editingGoal) return;
-    removeScheduledGoal(editingGoal.id);
-    onDone();
-  }
-
   return (
     <form className="rounded-[2rem] bg-white/80 p-5 shadow-sm" onSubmit={submit}>
       <p className="text-xs font-black uppercase text-pink-500">{editingGoal ? "Edit block" : "Schedule a goal"}</p>
@@ -78,13 +67,6 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
           onChange={updateField}
           placeholder="Goal title"
           value={form.title}
-        />
-        <textarea
-          className="min-h-20 resize-none rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300"
-          name="description"
-          onChange={updateField}
-          placeholder="Description or note"
-          value={form.description}
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-start-time">
@@ -136,40 +118,14 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
             <option>Creative</option>
           </select>
         </label>
-        <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-difficulty">
-          Difficulty
-          <select
-            className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3"
-            id="scheduled-difficulty"
-            name="difficulty"
-            onChange={updateField}
-            value={form.difficulty}
-          >
-            <option value="easy">Easy - 10 XP</option>
-            <option value="medium">Medium - 20 XP</option>
-            <option value="hard">Hard - 35 XP</option>
-          </select>
-        </label>
-        <textarea
-          className="min-h-20 resize-none rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300"
-          name="note"
-          onChange={updateField}
-          placeholder="Extra planning notes"
-          value={form.note}
-        />
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <button className="flex-1 rounded-full bg-zinc-950 px-5 py-3 font-black text-white" type="submit">
-            {editingGoal ? "Save goal" : "Save goal"}
+            {editingGoal ? "Save block" : "Add block"}
           </button>
           {editingGoal && (
-            <>
-              <button className="rounded-full bg-zinc-100 px-5 py-3 font-black text-zinc-700" onClick={onDone} type="button">
-                Cancel
-              </button>
-              <button className="rounded-full bg-rose-100 px-5 py-3 font-black text-rose-700" onClick={deleteEditingGoal} type="button">
-                Delete
-              </button>
-            </>
+            <button className="rounded-full bg-zinc-100 px-5 py-3 font-black text-zinc-700" onClick={onDone} type="button">
+              Cancel
+            </button>
           )}
         </div>
       </div>

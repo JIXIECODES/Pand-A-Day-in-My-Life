@@ -7,10 +7,6 @@ function hourLabel(hour) {
   return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-function hourRangeLabel(hour) {
-  return `${hourLabel(hour)} - ${hourLabel(hour + 1)}`;
-}
-
 function timeToMinutes(time) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
@@ -26,8 +22,8 @@ export default function TimeBlock({ hour, scheduledGoals, onEdit }) {
   });
 
   return (
-    <div className="grid gap-3 border-t border-white/80 py-3 sm:grid-cols-[9rem_1fr]">
-      <div className="text-sm font-black text-zinc-500">{hourRangeLabel(hour)}</div>
+    <div className="grid gap-3 border-t border-white/80 py-3 sm:grid-cols-[6rem_1fr]">
+      <div className="text-sm font-black text-zinc-500">{hourLabel(hour)}</div>
       <div className="min-h-20 rounded-2xl bg-white/60 p-2">
         {goals.length > 0 ? (
           <div className="grid gap-2">

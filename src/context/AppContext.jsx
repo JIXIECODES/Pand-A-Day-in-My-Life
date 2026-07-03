@@ -62,7 +62,7 @@ function unlockByRequirements(items, stats, currentIds) {
   return { next, newlyUnlocked };
 }
 
-export function AppProvider({ authSession, children, onExitSession }) {
+export function AppProvider({ children }) {
   const [activePage, setActivePage] = useState("home");
   const [goalsByDate, setGoalsByDate] = useState(() => getAllGoals());
   const [scheduledGoals, setScheduledGoals] = useState(() => getScheduledGoals());
@@ -122,13 +122,10 @@ export function AppProvider({ authSession, children, onExitSession }) {
     if (goal.startTime && goal.endTime) {
       saveScheduledGoal({
         title: goal.title,
-        description: goal.description || "",
-        note: goal.note || "",
         date,
         startTime: goal.startTime,
         endTime: goal.endTime,
         category: goal.category || "Personal",
-        difficulty: goal.difficulty || "medium",
         completed: false,
         xpAwarded: false,
       });
@@ -172,7 +169,7 @@ export function AppProvider({ authSession, children, onExitSession }) {
     setScheduledGoals(nextScheduledGoals);
 
     if (completingForFirstTime) {
-      persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: "medium" }, false));
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats));
     } else {
@@ -293,7 +290,6 @@ export function AppProvider({ authSession, children, onExitSession }) {
       activePage,
       addGoal,
       addScheduledGoal,
-      authSession,
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
       clearToast: () => setToast(""),
@@ -309,7 +305,6 @@ export function AppProvider({ authSession, children, onExitSession }) {
       pandaStats,
       removeGoal,
       resetAppData,
-      onExitSession,
       removeScheduledGoal,
       saveJournalEntry,
       scheduledGoals,
@@ -331,7 +326,6 @@ export function AppProvider({ authSession, children, onExitSession }) {
     }),
     [
       activePage,
-      authSession,
       currentMonth,
       dailyRewards,
       equippedOutfit,
@@ -346,7 +340,6 @@ export function AppProvider({ authSession, children, onExitSession }) {
       unlockedAchievements,
       unlockedDecorations,
       unlockedOutfits,
-      onExitSession,
     ],
   );
 
