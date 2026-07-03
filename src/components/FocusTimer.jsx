@@ -68,7 +68,7 @@ export default function FocusTimer() {
         <div>
           <p className="text-xs font-black uppercase text-emerald-200">Focus timer</p>
           <h2 className="mt-1 text-lg font-black">
-            {timerGoal ? `Focusing on: ${timerGoal.title}` : "Pick any goal or start a free focus session"}
+            {timerGoal ? timerGoal.title : "Pick any goal or start a free focus session"}
           </h2>
         </div>
         {timerGoal && (

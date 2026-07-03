@@ -11,7 +11,6 @@ export const STORAGE_KEYS = {
   dailyRewards: "panda-day-daily-rewards",
   equippedOutfit: "panda-day-equipped-outfit",
   scheduledGoals: "panda-day-scheduled-goals",
-  dailyMissions: "panda-day-daily-missions",
 };
 
 export function getData(key, fallback) {

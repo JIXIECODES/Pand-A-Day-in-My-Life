@@ -22,7 +22,7 @@ const hourOptions = Array.from({ length: 25 }, (_, hour) => {
 });
 
 export default function GoalBlockForm({ date, editingGoal, onDone }) {
-  const { addScheduledGoal, editScheduledGoal, removeScheduledGoal, showToast } = useAppContext();
+  const { addScheduledGoal, editScheduledGoal, removeScheduledGoal } = useAppContext();
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
     event.preventDefault();
     if (!form.title.trim()) return;
     if (form.endTime <= form.startTime) {
-      showToast("End time needs to be after start time.");
+      window.alert("End time needs to be after start time.");
       return;
     }
 

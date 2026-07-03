@@ -15,7 +15,16 @@ const emptyForm = {
 };
 
 export default function GoalModal({ open, onClose }) {
-  const { addGoal, editGoal, goalsByDate, removeGoal, selectedDate, startFocus, toggleGoal } = useAppContext();
+  const {
+    addGoal,
+    editGoal,
+    goalsByDate,
+    removeGoal,
+    selectedDate,
+    setTimerGoal,
+    startFocus,
+    toggleGoal,
+  } = useAppContext();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState("");
 
@@ -43,7 +52,11 @@ export default function GoalModal({ open, onClose }) {
       editGoal(selectedDate, editingId, form);
       setEditingId("");
     } else {
-      addGoal(selectedDate, form);
+      const saved = addGoal(selectedDate, form);
+      if (window.confirm("Start a focus timer?")) {
+        setTimerGoal(saved);
+        startFocus(saved);
+      }
     }
 
     setForm(emptyForm);
@@ -64,7 +77,7 @@ export default function GoalModal({ open, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-end bg-white/35 p-3 backdrop-blur-md sm:place-items-center">
+    <div className="fixed inset-0 z-50 grid place-items-end bg-zinc-950/30 p-3 backdrop-blur-sm sm:place-items-center">
       <div className="animate-modal-in max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-zinc-100 p-5">
           <div>
@@ -72,7 +85,7 @@ export default function GoalModal({ open, onClose }) {
             <h2 className="text-2xl font-black text-zinc-950">{dayjs(selectedDate).format("dddd, MMMM D")}</h2>
           </div>
           <button className="grid size-10 place-items-center rounded-full bg-zinc-100 font-black" onClick={onClose} type="button">
-            X
+            ×
           </button>
         </div>
 
@@ -88,9 +101,9 @@ export default function GoalModal({ open, onClose }) {
               <label className="text-sm font-black text-zinc-600">
                 Difficulty
                 <select className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300" name="difficulty" onChange={updateField} value={form.difficulty}>
-                  <option value="easy">Easy - 10 XP</option>
-                  <option value="medium">Medium - 20 XP</option>
-                  <option value="hard">Hard - 35 XP</option>
+                  <option value="easy">Easy · 10 XP</option>
+                  <option value="medium">Medium · 20 XP</option>
+                  <option value="hard">Hard · 35 XP</option>
                 </select>
               </label>
             </div>
@@ -137,15 +150,14 @@ export default function GoalModal({ open, onClose }) {
                         {goal.deadline && <p className="mt-2 text-xs font-black text-zinc-500">Deadline {goal.deadline}</p>}
                         {goal.startTime && goal.endTime && (
                           <p className="mt-2 text-xs font-black text-sky-600">
-                            Scheduled {goal.startTime} - {goal.endTime} - {goal.category || "Personal"}
+                            Scheduled {goal.startTime} - {goal.endTime} · {goal.category || "Personal"}
                           </p>
                         )}
-                        {gentleMiss && <p className="mt-2 rounded-2xl bg-sky-100 p-3 text-sm font-bold text-sky-700">Your panda is a little sleepy with this deadline, but tomorrow is fresh.</p>}
+                        {gentleMiss && <p className="mt-2 rounded-2xl bg-sky-100 p-3 text-sm font-bold text-sky-700">Panda is a little sleepy with this deadline, but tomorrow is fresh.</p>}
                         {goal.note && <p className="mt-2 rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-600">{goal.note}</p>}
                       </div>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex gap-1">
                         <button className="rounded-full bg-white px-3 py-2 text-sm font-black" onClick={() => beginEdit(goal)} type="button">Edit</button>
-                        <button className="rounded-full bg-emerald-100 px-3 py-2 text-sm font-black text-emerald-700" onClick={() => startFocus({ ...goal, date: selectedDate })} type="button">Focus</button>
                         <button className="rounded-full bg-rose-100 px-3 py-2 text-sm font-black text-rose-700" onClick={() => removeGoal(selectedDate, goal.id)} type="button">Delete</button>
                       </div>
                     </div>

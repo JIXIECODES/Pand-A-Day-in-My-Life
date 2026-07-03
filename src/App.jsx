@@ -3,9 +3,6 @@ import LoginPage from "./auth/pages/LoginPage.jsx";
 import SignUpPage from "./auth/pages/SignUpPage.jsx";
 import { clearAuthSession, getAuthSession } from "./auth/utils/authStorage.js";
 import Navbar from "./components/Navbar.jsx";
-import ConfirmActionModal from "./components/ConfirmActionModal.jsx";
-import SeasonalBackground from "./components/SeasonalBackground.jsx";
-import Toast from "./components/Toast.jsx";
 import { AppProvider, useAppContext } from "./context/AppContext.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import Home from "./pages/Home.jsx";
@@ -16,7 +13,7 @@ import Settings from "./pages/Settings.jsx";
 import { getSeason, getSeasonTheme } from "./utils/seasonUtils.js";
 
 function AppContent() {
-  const { activePage, cancelConfirm, clearToast, confirmAction, confirmPendingAction, settings, toast } = useAppContext();
+  const { activePage, clearToast, settings, toast } = useAppContext();
   const season = settings.theme === "seasonal" ? getSeason() : settings.theme;
   const theme = getSeasonTheme(season);
   const pages = {
@@ -35,11 +32,13 @@ function AppContent() {
   }, [clearToast, toast]);
 
   return (
-    <div className={`relative min-h-screen bg-gradient-to-br ${theme.page} text-zinc-900`}>
-      <SeasonalBackground season={season} />
+    <div className={`min-h-screen bg-gradient-to-br ${theme.page} text-zinc-900`}>
       <Navbar />
-      <Toast message={toast} onClose={clearToast} />
-      <ConfirmActionModal action={confirmAction} onCancel={cancelConfirm} onConfirm={confirmPendingAction} />
+      {toast && (
+        <div className="fixed right-4 top-24 z-50 max-w-sm rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-xl">
+          {toast}
+        </div>
+      )}
       {pages[activePage] || pages.home}
     </div>
   );

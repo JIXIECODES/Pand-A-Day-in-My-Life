@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import DecorationShelf from "../components/DecorationShelf.jsx";
 import OutfitSelector from "../components/OutfitSelector.jsx";
 import PandaMoodDisplay from "../components/PandaMoodDisplay.jsx";
@@ -8,11 +8,7 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { xpForNextLevel } from "../utils/pandaLogic.js";
 
 export default function PandaPage() {
-  const { markDailyMission, pandaStats } = useAppContext();
-
-  useEffect(() => {
-    markDailyMission("visit-room");
-  }, []);
+  const { pandaStats } = useAppContext();
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_22rem]">

@@ -13,7 +13,7 @@ const timezones = [
 ];
 
 export default function Settings() {
-  const { authSession, onExitSession, requestConfirm, resetAppData, settings, updateSettings } = useAppContext();
+  const { authSession, onExitSession, resetAppData, settings, updateSettings } = useAppContext();
   const isGuest = authSession?.isGuest;
   const sessionLabel = isGuest
     ? "You are using guest mode."
@@ -87,14 +87,7 @@ export default function Settings() {
             <button
               className="mt-4 rounded-full bg-rose-500 px-5 py-3 font-black text-white"
               onClick={() => {
-                requestConfirm({
-                  title: "Reset all local panda data?",
-                  goalTitle: "This clears goals, journal memories, panda stats, rewards, and settings in this browser.",
-                  confirmLabel: "Reset data",
-                  cancelLabel: "Keep data",
-                  variant: "danger",
-                  onConfirm: resetAppData,
-                });
+                if (window.confirm("Reset all local panda data?")) resetAppData();
               }}
               type="button"
             >
