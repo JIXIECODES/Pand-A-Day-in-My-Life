@@ -12,7 +12,12 @@ import {
   journalStats,
   withMood,
 } from "../utils/pandaLogic.js";
-import { canClaimDailyReward, claimDailyReward } from "../utils/rewardLogic.js";
+import {
+  canClaimDailyReward,
+  claimDailyReward,
+  completeDailyMission,
+  normalizeDailyMissionProgress,
+} from "../utils/rewardLogic.js";
 import {
   deleteGoal,
   deleteScheduledGoal,
@@ -77,6 +82,9 @@ export function AppProvider({ authSession, children, onExitSession }) {
   const [dailyRewards, setDailyRewards] = useState(() =>
     getData(STORAGE_KEYS.dailyRewards, { lastClaimedDate: "", lastReward: null }),
   );
+  const [dailyMissionProgress, setDailyMissionProgress] = useState(() =>
+    normalizeDailyMissionProgress(getData(STORAGE_KEYS.dailyMissions, null)),
+  );
   const [unlockedOutfits, setUnlockedOutfits] = useState(() =>
     getData(STORAGE_KEYS.unlockedOutfits, []),
   );
@@ -90,6 +98,33 @@ export function AppProvider({ authSession, children, onExitSession }) {
     getData(STORAGE_KEYS.equippedOutfit, ""),
   );
   const [toast, setToast] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
+
+  function showToast(message) {
+    setToast(message);
+  }
+
+  function requestConfirm(action) {
+    setConfirmAction(action);
+  }
+
+  function markDailyMission(missionId) {
+    const result = completeDailyMission(dailyMissionProgress, missionId);
+    if (!result.changed) return result.progress;
+    setDailyMissionProgress(saveData(STORAGE_KEYS.dailyMissions, result.progress));
+    showToast("Daily mission complete!");
+    return result.progress;
+  }
+
+  function cancelConfirm() {
+    setConfirmAction(null);
+  }
+
+  function confirmPendingAction() {
+    const action = confirmAction;
+    setConfirmAction(null);
+    action?.onConfirm?.();
+  }
 
   function persistStats(nextStats, goalsSnapshot = goalsByDate) {
     const statsWithStreak = { ...nextStats, streak: deriveStreak(goalsSnapshot) };
@@ -112,7 +147,7 @@ export function AppProvider({ authSession, children, onExitSession }) {
       ...decorationResult.newlyUnlocked.map((item) => `Unlocked decoration: ${item.name}`),
       ...achievementResult.newlyUnlocked.map((item) => `Achievement: ${item.title}`),
     ];
-    if (newLabels.length > 0) setToast(newLabels[0]);
+    if (newLabels.length > 0) showToast(newLabels[0]);
 
     return statsWithStreak;
   }
@@ -136,33 +171,34 @@ export function AppProvider({ authSession, children, onExitSession }) {
     }
     setGoalsByDate(getAllGoals());
     persistStats(withMood(pandaStats, "idle", "New goal added"));
+    markDailyMission("create-goal");
+    showToast("Goal created.");
     return saved;
   }
 
   function editGoal(date, id, updates) {
     updateGoal(date, id, updates);
     setGoalsByDate(getAllGoals());
+    showToast("Goal edited.");
   }
 
   function addScheduledGoal(goal) {
     const saved = saveScheduledGoal(goal);
     setScheduledGoals(getScheduledGoals());
     persistStats(withMood(pandaStats, "idle", "Scheduled goal added"));
+    markDailyMission("schedule-block");
+    showToast("Time block scheduled.");
     return saved;
   }
 
   function editScheduledGoal(id, updates) {
     setScheduledGoals(updateScheduledGoal(id, updates));
+    showToast("Scheduled goal edited.");
   }
 
-  function toggleScheduledGoal(id) {
+  function completeScheduledGoal(id) {
     const goal = scheduledGoals.find((item) => item.id === id);
     if (!goal) return;
-
-    if (!goal.completed) {
-      const confirmed = window.confirm("Are you sure this goal is truly completed?");
-      if (!confirmed) return;
-    }
 
     const completingForFirstTime = !goal.completed && !goal.xpAwarded;
     const nextScheduledGoals = updateScheduledGoal(id, {
@@ -173,26 +209,54 @@ export function AppProvider({ authSession, children, onExitSession }) {
 
     if (completingForFirstTime) {
       persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      markDailyMission("complete-goal");
+      showToast("Goal completed! Your panda is proud of you.");
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+      showToast("Goal completed! Your panda is proud of you.");
     } else {
       persistStats(withMood(pandaStats, "idle", "Scheduled goal unchecked"));
+      showToast("Goal marked not complete.");
     }
   }
 
-  function removeScheduledGoal(id) {
-    setScheduledGoals(deleteScheduledGoal(id));
-    persistStats(withMood(pandaStats, "idle", "Scheduled goal removed"));
-  }
-
-  function toggleGoal(date, id) {
-    const goal = (goalsByDate[date] || []).find((item) => item.id === id);
+  function toggleScheduledGoal(id) {
+    const goal = scheduledGoals.find((item) => item.id === id);
     if (!goal) return;
 
     if (!goal.completed) {
-      const confirmed = window.confirm("Are you sure this goal is truly completed?");
-      if (!confirmed) return;
+      requestConfirm({
+        title: "Are you sure this goal is truly completed?",
+        goalTitle: goal.title,
+        confirmLabel: "Yes, complete it",
+        cancelLabel: "Not yet",
+        onConfirm: () => completeScheduledGoal(id),
+      });
+      return;
     }
+
+    completeScheduledGoal(id);
+  }
+
+  function removeScheduledGoal(id) {
+    const goal = scheduledGoals.find((item) => item.id === id);
+    requestConfirm({
+      title: "Delete this goal?",
+      goalTitle: goal?.title || "Scheduled goal",
+      confirmLabel: "Delete goal",
+      cancelLabel: "Keep it",
+      variant: "danger",
+      onConfirm: () => {
+        setScheduledGoals(deleteScheduledGoal(id));
+        persistStats(withMood(pandaStats, "idle", "Scheduled goal removed"));
+        showToast("Goal deleted.");
+      },
+    });
+  }
+
+  function completeGoal(date, id) {
+    const goal = (goalsByDate[date] || []).find((item) => item.id === id);
+    if (!goal) return;
 
     const completingForFirstTime = !goal.completed && !goal.xpAwarded;
     updateGoal(date, id, {
@@ -205,18 +269,51 @@ export function AppProvider({ authSession, children, onExitSession }) {
     if (completingForFirstTime) {
       const allDone = (nextGoals[date] || []).length > 0 && nextGoals[date].every((item) => item.completed);
       persistStats(completeGoalStats(pandaStats, goal, allDone), nextGoals);
+      markDailyMission("complete-goal");
+      showToast("Goal completed! Your panda is proud of you.");
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), nextGoals);
+      showToast("Goal completed! Your panda is proud of you.");
     } else {
       persistStats(withMood(pandaStats, "idle", "Goal unchecked"), nextGoals);
+      showToast("Goal marked not complete.");
     }
   }
 
+  function toggleGoal(date, id) {
+    const goal = (goalsByDate[date] || []).find((item) => item.id === id);
+    if (!goal) return;
+
+    if (!goal.completed) {
+      requestConfirm({
+        title: "Are you sure this goal is truly completed?",
+        goalTitle: goal.title,
+        confirmLabel: "Yes, complete it",
+        cancelLabel: "Not yet",
+        onConfirm: () => completeGoal(date, id),
+      });
+      return;
+    }
+
+    completeGoal(date, id);
+  }
+
   function removeGoal(date, id) {
-    deleteGoal(date, id);
-    const nextGoals = getAllGoals();
-    setGoalsByDate(nextGoals);
-    persistStats(withMood(pandaStats, "idle", "Goal removed"), nextGoals);
+    const goal = (goalsByDate[date] || []).find((item) => item.id === id);
+    requestConfirm({
+      title: "Delete this goal?",
+      goalTitle: goal?.title || "Goal",
+      confirmLabel: "Delete goal",
+      cancelLabel: "Keep it",
+      variant: "danger",
+      onConfirm: () => {
+        deleteGoal(date, id);
+        const nextGoals = getAllGoals();
+        setGoalsByDate(nextGoals);
+        persistStats(withMood(pandaStats, "idle", "Goal removed"), nextGoals);
+        showToast("Goal deleted.");
+      },
+    });
   }
 
   function saveJournalEntry(date, text) {
@@ -229,11 +326,15 @@ export function AppProvider({ authSession, children, onExitSession }) {
     };
     setJournalEntries(saveData(STORAGE_KEYS.journalEntries, nextEntries));
     persistStats(journalStats(pandaStats));
+    markDailyMission("journal-entry");
+    showToast("Journal memory saved.");
   }
 
   function startFocus(goal = timerGoal) {
     if (goal) setTimerGoal(goal);
     persistStats(focusStartedStats(pandaStats));
+    markDailyMission("focus-session");
+    showToast(goal ? `Focus timer set for "${goal.title}."` : "Focus timer started.");
   }
 
   function finishFocusTimer() {
@@ -250,19 +351,20 @@ export function AppProvider({ authSession, children, onExitSession }) {
     }
 
     persistStats(nextStats, nextGoals);
-    setToast(timerGoal ? `Focus finished: ${timerGoal.title} is complete` : "Focus timer complete");
+    showToast(timerGoal ? `Focus finished: ${timerGoal.title} is complete` : "Focus timer complete");
   }
 
   function claimReward() {
-    const result = claimDailyReward(pandaStats, dailyRewards.lastClaimedDate);
+    const result = claimDailyReward(pandaStats, dailyMissionProgress);
     if (!result.reward) return;
 
     setDailyRewards(saveData(STORAGE_KEYS.dailyRewards, {
-      lastClaimedDate: result.lastClaimedDate,
+      lastClaimedDate: result.progress.date,
       lastReward: result.reward,
     }));
+    setDailyMissionProgress(saveData(STORAGE_KEYS.dailyMissions, result.progress));
     persistStats(result.stats);
-    setToast(`Daily reward: ${result.reward.label}`);
+    showToast(`Daily reward claimed! ${result.reward.label}`);
   }
 
   function updateSettings(updates) {
@@ -272,6 +374,7 @@ export function AppProvider({ authSession, children, onExitSession }) {
 
   function equipOutfit(outfitId) {
     setEquippedOutfit(saveData(STORAGE_KEYS.equippedOutfit, outfitId));
+    showToast("Outfit equipped.");
   }
 
   function resetAppData() {
@@ -284,8 +387,9 @@ export function AppProvider({ authSession, children, onExitSession }) {
     setUnlockedAchievements([]);
     setScheduledGoals([]);
     setDailyRewards({ lastClaimedDate: "", lastReward: null });
+    setDailyMissionProgress(normalizeDailyMissionProgress(null));
     setEquippedOutfit("");
-    setToast("Local panda data reset");
+    showToast("Local panda data reset");
   }
 
   const value = useMemo(
@@ -294,11 +398,15 @@ export function AppProvider({ authSession, children, onExitSession }) {
       addGoal,
       addScheduledGoal,
       authSession,
-      canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
+      canClaimReward: canClaimDailyReward(dailyMissionProgress),
+      cancelConfirm,
       claimReward,
       clearToast: () => setToast(""),
+      confirmAction,
+      confirmPendingAction,
       currentMonth,
       dailyRewards,
+      dailyMissionProgress,
       editGoal,
       editScheduledGoal,
       equipOutfit,
@@ -306,8 +414,10 @@ export function AppProvider({ authSession, children, onExitSession }) {
       finishFocusTimer,
       goalsByDate,
       journalEntries,
+      markDailyMission,
       pandaStats,
       removeGoal,
+      requestConfirm,
       resetAppData,
       onExitSession,
       removeScheduledGoal,
@@ -318,6 +428,7 @@ export function AppProvider({ authSession, children, onExitSession }) {
       setCurrentMonth,
       setSelectedDate,
       setTimerGoal,
+      showToast,
       settings,
       startFocus,
       timerGoal,
@@ -334,6 +445,7 @@ export function AppProvider({ authSession, children, onExitSession }) {
       authSession,
       currentMonth,
       dailyRewards,
+      dailyMissionProgress,
       equippedOutfit,
       goalsByDate,
       journalEntries,
@@ -343,6 +455,7 @@ export function AppProvider({ authSession, children, onExitSession }) {
       settings,
       timerGoal,
       toast,
+      confirmAction,
       unlockedAchievements,
       unlockedDecorations,
       unlockedOutfits,

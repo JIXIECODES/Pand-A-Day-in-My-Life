@@ -14,9 +14,11 @@ function goalToForm(goal) {
 }
 
 export default function GoalItem({ date, goal }) {
-  const { editGoal, removeGoal, setTimerGoal, toggleGoal } = useAppContext();
+  const { editGoal, removeGoal, startFocus, toggleGoal, timerGoal } = useAppContext();
   const [editing, setEditing] = useState(false);
+  const [focusedPulse, setFocusedPulse] = useState(false);
   const [form, setForm] = useState(() => goalToForm(goal));
+  const isFocused = timerGoal?.id === goal.id;
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -28,6 +30,12 @@ export default function GoalItem({ date, goal }) {
     if (!form.title.trim()) return;
     editGoal(date, goal.id, form);
     setEditing(false);
+  }
+
+  function focusGoal() {
+    startFocus({ ...goal, date });
+    setFocusedPulse(true);
+    window.setTimeout(() => setFocusedPulse(false), 900);
   }
 
   if (editing) {
@@ -97,7 +105,7 @@ export default function GoalItem({ date, goal }) {
   }
 
   return (
-    <article className={`rounded-3xl p-4 ${goal.completed ? "bg-emerald-50" : "bg-zinc-50"}`}>
+    <article className={`rounded-3xl p-4 transition ${isFocused || focusedPulse ? "bg-emerald-50 ring-4 ring-emerald-200" : goal.completed ? "bg-emerald-50" : "bg-zinc-50"}`}>
       <div className="flex items-start gap-3">
         <input
           checked={goal.completed}
@@ -124,8 +132,8 @@ export default function GoalItem({ date, goal }) {
         <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setEditing(true)} type="button">
           Edit
         </button>
-        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal({ ...goal, date })} type="button">
-          Focus
+        <button className={`rounded-full px-4 py-2 text-sm font-black ${isFocused ? "bg-emerald-500 text-white" : "bg-white text-zinc-700"}`} onClick={focusGoal} type="button">
+          {isFocused ? "Focusing" : "Focus"}
         </button>
         <button className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700" onClick={() => removeGoal(date, goal.id)} type="button">
           Delete

@@ -5,10 +5,8 @@ import GoalModal from "../components/GoalModal.jsx";
 import HomeGoals from "../components/HomeGoals.jsx";
 import PandaCompanion from "../components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../components/PandaMoodDisplay.jsx";
-import ProgressBar from "../components/ProgressBar.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { greetingForNow } from "../utils/dateUtils.js";
-import { xpForNextLevel } from "../utils/pandaLogic.js";
 
 export default function Home() {
   const { journalEntries, pandaStats } = useAppContext();
@@ -35,6 +33,7 @@ export default function Home() {
               <p className="mt-1 text-4xl font-black text-zinc-950">{pandaStats.streak}</p>
               <p className="text-sm font-semibold text-zinc-500">days with completed goals</p>
             </section>
+            <DailyReward />
           </div>
         </div>
 
@@ -44,10 +43,6 @@ export default function Home() {
 
       <aside className="space-y-5">
         <FocusTimer />
-        <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-          <ProgressBar label={`Level ${pandaStats.level} XP`} value={pandaStats.xp} max={xpForNextLevel(pandaStats.level)} tone="pink" />
-        </section>
-        <DailyReward />
         <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
           <p className="text-xs font-black uppercase text-pink-500">Recent memory</p>
           <p className="mt-2 text-sm font-semibold text-zinc-600">

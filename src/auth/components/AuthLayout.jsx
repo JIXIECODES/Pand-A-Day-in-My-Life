@@ -1,9 +1,12 @@
 import React from "react";
+import SeasonalBackground from "../../components/SeasonalBackground.jsx";
+import { getSeason } from "../../utils/seasonUtils.js";
 import PandaAuthGraphic from "./PandaAuthGraphic.jsx";
 
 export default function AuthLayout({ children, eyebrow, title }) {
   return (
-    <main className="min-h-screen bg-[linear-gradient(135deg,#fff8ed_0%,#ecfdf3_52%,#fdf2f8_100%)] px-4 py-8 text-zinc-900">
+    <main className="relative min-h-screen bg-[linear-gradient(135deg,#fff8ed_0%,#ecfdf3_52%,#fdf2f8_100%)] px-4 py-8 text-zinc-900">
+      <SeasonalBackground season={getSeason()} />
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-[2rem] border border-white/80 bg-white/75 shadow-2xl shadow-emerald-100/70 backdrop-blur lg:grid-cols-[0.9fr_1.1fr]">
           <div className="flex flex-col justify-center bg-emerald-50/70 p-8 text-center">
