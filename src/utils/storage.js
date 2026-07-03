@@ -122,10 +122,13 @@ export function saveScheduledGoal(goal) {
   const nextGoal = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     title: goal.title,
+    description: goal.description || "",
+    note: goal.note || "",
     date: goal.date,
     startTime: goal.startTime,
     endTime: goal.endTime,
     category: goal.category || "Personal",
+    difficulty: goal.difficulty || "medium",
     completed: Boolean(goal.completed),
     xpAwarded: Boolean(goal.xpAwarded),
     createdAt: new Date().toISOString(),

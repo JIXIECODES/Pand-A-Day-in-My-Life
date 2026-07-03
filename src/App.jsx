@@ -1,4 +1,7 @@
 import React, { useEffect } from "react";
+import LoginPage from "./auth/pages/LoginPage.jsx";
+import SignUpPage from "./auth/pages/SignUpPage.jsx";
+import { clearAuthSession, getAuthSession } from "./auth/utils/authStorage.js";
 import Navbar from "./components/Navbar.jsx";
 import { AppProvider, useAppContext } from "./context/AppContext.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
@@ -42,8 +45,35 @@ function AppContent() {
 }
 
 export default function App() {
+  const [authSession, setAuthSession] = React.useState(() => getAuthSession());
+  const [authPage, setAuthPage] = React.useState("signup");
+
+  function enterApp(session) {
+    setAuthSession(session);
+  }
+
+  function exitSession() {
+    clearAuthSession();
+    setAuthSession(null);
+    setAuthPage("login");
+  }
+
+  if (!authSession) {
+    return authPage === "login" ? (
+      <LoginPage
+        onEnterApp={enterApp}
+        onShowSignUp={() => setAuthPage("signup")}
+      />
+    ) : (
+      <SignUpPage
+        onEnterApp={enterApp}
+        onShowLogin={() => setAuthPage("login")}
+      />
+    );
+  }
+
   return (
-    <AppProvider>
+    <AppProvider authSession={authSession} onExitSession={exitSession}>
       <AppContent />
     </AppProvider>
   );

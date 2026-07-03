@@ -19,6 +19,12 @@ select {
   font: inherit;
 }
 
+@layer components {
+  .auth-input {
+    @apply w-full rounded-2xl border border-emerald-100 bg-white/90 px-4 py-3 font-bold text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100;
+  }
+}
+
 @keyframes modal-in {
   from {
     opacity: 0;

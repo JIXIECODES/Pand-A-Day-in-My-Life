@@ -13,7 +13,11 @@ const timezones = [
 ];
 
 export default function Settings() {
-  const { resetAppData, settings, updateSettings } = useAppContext();
+  const { authSession, onExitSession, resetAppData, settings, updateSettings } = useAppContext();
+  const isGuest = authSession?.isGuest;
+  const sessionLabel = isGuest
+    ? "You are using guest mode."
+    : `Signed in locally as ${authSession?.user?.name || "your panda account"}.`;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
@@ -22,6 +26,20 @@ export default function Settings() {
         <h1 className="mt-1 text-3xl font-black text-zinc-950">Panda preferences</h1>
 
         <div className="mt-6 space-y-4">
+          <div className="rounded-3xl bg-emerald-50 p-4">
+            <h2 className="font-black text-emerald-900">{sessionLabel}</h2>
+            <p className="mt-1 text-sm font-semibold text-emerald-700">
+              Leaving this session will not delete goals, journal entries, rewards, or panda progress.
+            </p>
+            <button
+              className="mt-4 rounded-full bg-emerald-500 px-5 py-3 font-black text-white"
+              onClick={onExitSession}
+              type="button"
+            >
+              {isGuest ? "Exit guest mode" : "Log out"}
+            </button>
+          </div>
+
           <label className="block rounded-3xl bg-zinc-50 p-4">
             <span className="text-sm font-black text-zinc-700">Timezone</span>
             <select

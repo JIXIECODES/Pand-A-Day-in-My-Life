@@ -62,7 +62,7 @@ function unlockByRequirements(items, stats, currentIds) {
   return { next, newlyUnlocked };
 }
 
-export function AppProvider({ children }) {
+export function AppProvider({ authSession, children, onExitSession }) {
   const [activePage, setActivePage] = useState("home");
   const [goalsByDate, setGoalsByDate] = useState(() => getAllGoals());
   const [scheduledGoals, setScheduledGoals] = useState(() => getScheduledGoals());
@@ -122,10 +122,13 @@ export function AppProvider({ children }) {
     if (goal.startTime && goal.endTime) {
       saveScheduledGoal({
         title: goal.title,
+        description: goal.description || "",
+        note: goal.note || "",
         date,
         startTime: goal.startTime,
         endTime: goal.endTime,
         category: goal.category || "Personal",
+        difficulty: goal.difficulty || "medium",
         completed: false,
         xpAwarded: false,
       });
@@ -169,7 +172,7 @@ export function AppProvider({ children }) {
     setScheduledGoals(nextScheduledGoals);
 
     if (completingForFirstTime) {
-      persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: "medium" }, false));
+      persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats));
     } else {
@@ -290,6 +293,7 @@ export function AppProvider({ children }) {
       activePage,
       addGoal,
       addScheduledGoal,
+      authSession,
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
       clearToast: () => setToast(""),
@@ -305,6 +309,7 @@ export function AppProvider({ children }) {
       pandaStats,
       removeGoal,
       resetAppData,
+      onExitSession,
       removeScheduledGoal,
       saveJournalEntry,
       scheduledGoals,
@@ -326,6 +331,7 @@ export function AppProvider({ children }) {
     }),
     [
       activePage,
+      authSession,
       currentMonth,
       dailyRewards,
       equippedOutfit,
@@ -340,6 +346,7 @@ export function AppProvider({ children }) {
       unlockedAchievements,
       unlockedDecorations,
       unlockedOutfits,
+      onExitSession,
     ],
   );
 
