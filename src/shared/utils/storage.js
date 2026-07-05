@@ -113,6 +113,8 @@ export function getPandaStats() {
 export function getScheduledGoals() {
   return getData(STORAGE_KEYS.scheduledGoals, []).map((goal) => ({
     ...goal,
+    description: goal.description || "",
+    difficulty: goal.difficulty || "easy",
     xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
   }));
 }
@@ -122,10 +124,12 @@ export function saveScheduledGoal(goal) {
   const nextGoal = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     title: goal.title,
+    description: goal.description || "",
     date: goal.date,
     startTime: goal.startTime,
     endTime: goal.endTime,
     category: goal.category || "Personal",
+    difficulty: goal.difficulty || "easy",
     completed: Boolean(goal.completed),
     xpAwarded: Boolean(goal.xpAwarded),
     createdAt: new Date().toISOString(),

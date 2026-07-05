@@ -1,4 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import LoginPage from "../features/auth/pages/LoginPage.jsx";
+import SignUpPage from "../features/auth/pages/SignUpPage.jsx";
+import { clearAuthSession, getAuthSession } from "../features/auth/utils/authStorage.js";
 import Navbar from "../shared/components/Navbar.jsx";
 import { AppProvider, useAppContext } from "./AppProvider.jsx";
 import { routes } from "./routes.jsx";
@@ -28,10 +31,35 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function MainApp({ authSession, onLogout }) {
   return (
-    <AppProvider>
+    <AppProvider authSession={authSession} onLogout={onLogout}>
       <AppContent />
     </AppProvider>
   );
+}
+
+export default function App() {
+  const [authSession, setAuthSession] = useState(() => getAuthSession());
+  const [authScreen, setAuthScreen] = useState("login");
+
+  function enterApp(session) {
+    setAuthSession(session);
+  }
+
+  function logout() {
+    clearAuthSession();
+    setAuthSession(null);
+    setAuthScreen("login");
+  }
+
+  if (!authSession) {
+    return authScreen === "signup" ? (
+      <SignUpPage onEnterApp={enterApp} onShowLogin={() => setAuthScreen("login")} />
+    ) : (
+      <LoginPage onEnterApp={enterApp} onShowSignUp={() => setAuthScreen("signup")} />
+    );
+  }
+
+  return <MainApp authSession={authSession} onLogout={logout} />;
 }

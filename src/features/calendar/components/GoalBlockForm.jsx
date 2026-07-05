@@ -3,19 +3,21 @@ import { useAppContext } from "../../../app/AppProvider.jsx";
 
 const emptyForm = {
   title: "",
+  description: "",
   startTime: "09:00",
   endTime: "10:00",
   category: "Personal",
+  difficulty: "easy",
 };
 
-const hourOptions = Array.from({ length: 16 }, (_, index) => {
-  const hour = index + 6;
+const hourOptions = Array.from({ length: 25 }, (_, index) => {
+  const hour = index;
   const value = `${hour.toString().padStart(2, "0")}:00`;
   const date = new Date();
-  date.setHours(hour, 0, 0, 0);
+  date.setHours(hour % 24, 0, 0, 0);
   return {
     value,
-    label: date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    label: hour === 24 ? "12:00 AM (next day)" : date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
   };
 });
 
@@ -27,9 +29,11 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
     if (editingGoal) {
       setForm({
         title: editingGoal.title,
+        description: editingGoal.description || "",
         startTime: editingGoal.startTime,
         endTime: editingGoal.endTime,
         category: editingGoal.category,
+        difficulty: editingGoal.difficulty || "easy",
       });
     } else {
       setForm(emptyForm);
@@ -67,6 +71,13 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
           onChange={updateField}
           placeholder="Goal title"
           value={form.title}
+        />
+        <textarea
+          className="min-h-24 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-pink-300"
+          name="description"
+          onChange={updateField}
+          placeholder="Description or note"
+          value={form.description}
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-start-time">
@@ -116,6 +127,20 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
             <option>Work</option>
             <option>Health</option>
             <option>Creative</option>
+          </select>
+        </label>
+        <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-difficulty">
+          Difficulty
+          <select
+            className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3"
+            id="scheduled-difficulty"
+            name="difficulty"
+            onChange={updateField}
+            value={form.difficulty}
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
           </select>
         </label>
         <div className="flex gap-2">

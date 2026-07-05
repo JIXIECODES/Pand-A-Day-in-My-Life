@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import Calendar from "../components/Calendar.jsx";
-import DaySchedule from "../components/DaySchedule.jsx";
+import DayPlannerModal from "../components/DayPlannerModal.jsx";
 import GoalModal from "../../goals/components/GoalModal.jsx";
 
 export default function CalendarPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [plannerOpen, setPlannerOpen] = useState(false);
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
-      <Calendar onOpenDay={() => setModalOpen(false)} />
-      <DaySchedule />
+      <Calendar onOpenDay={() => setPlannerOpen(true)} />
       <section className="rounded-[2rem] bg-white/70 p-5 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -22,6 +22,7 @@ export default function CalendarPage() {
         </div>
       </section>
       <GoalModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <DayPlannerModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
     </main>
   );
 }

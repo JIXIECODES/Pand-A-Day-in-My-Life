@@ -2,9 +2,11 @@ import React from "react";
 import ScheduledGoalCard from "./ScheduledGoalCard.jsx";
 
 function hourLabel(hour) {
-  const date = new Date();
-  date.setHours(hour, 0, 0, 0);
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const start = new Date();
+  const end = new Date();
+  start.setHours(hour, 0, 0, 0);
+  end.setHours((hour + 1) % 24, 0, 0, 0);
+  return `${start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} - ${end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
 }
 
 function timeToMinutes(time) {
