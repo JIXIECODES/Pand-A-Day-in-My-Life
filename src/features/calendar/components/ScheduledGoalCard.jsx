@@ -1,15 +1,18 @@
 import React from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
+import { categoryKey } from "../../../shared/utils/storage.js";
 
 export default function ScheduledGoalCard({ goal, onEdit }) {
-  const { removeScheduledGoal, toggleScheduledGoal } = useAppContext();
+  const { categoryColors, removeScheduledGoal, toggleScheduledGoal } = useAppContext();
+  const color = categoryColors[categoryKey(goal.category)] || categoryColors.other || "#6b7280";
 
   return (
     <article
-      className={[
-        "rounded-2xl border p-3 shadow-sm",
-        goal.completed ? "border-emerald-200 bg-emerald-50" : "border-pink-200 bg-pink-50",
-      ].join(" ")}
+      className="rounded-2xl border p-3 shadow-sm"
+      style={{
+        backgroundColor: goal.completed ? "#ecfdf5" : `${color}18`,
+        borderColor: goal.completed ? "#a7f3d0" : color,
+      }}
     >
       <div className="flex items-start gap-3">
         <input
@@ -23,6 +26,9 @@ export default function ScheduledGoalCard({ goal, onEdit }) {
           <p className="mt-1 text-xs font-black uppercase text-zinc-500">
             {goal.startTime} - {goal.endTime} - {goal.category} - {goal.difficulty || "easy"}
           </p>
+          <span className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase text-white" style={{ backgroundColor: color }}>
+            {goal.category || "Other"}
+          </span>
           {goal.description && <p className="mt-2 text-sm font-semibold text-zinc-600">{goal.description}</p>}
         </div>
       </div>

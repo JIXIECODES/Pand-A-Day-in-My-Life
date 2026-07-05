@@ -14,19 +14,26 @@ import {
 } from "../features/panda/utils/pandaLogic.js";
 import { canClaimDailyReward, claimDailyReward } from "../features/rewards/utils/rewardLogic.js";
 import {
+  DEFAULT_CATEGORY_COLORS,
+  deleteClassicGoal,
   deleteGoal,
   deleteScheduledGoal,
   getAllGoals,
+  getCategoryColors,
+  getClassicGoals,
   getData,
   getPandaStats,
   getScheduledGoals,
   getSettings,
   resetAllData,
+  saveCategoryColors,
+  saveClassicGoal,
   saveData,
   saveGoal,
   saveScheduledGoal,
   saveSettings,
   STORAGE_KEYS,
+  updateClassicGoal,
   updateGoal,
   updateScheduledGoal,
 } from "../shared/utils/storage.js";
@@ -65,7 +72,9 @@ function unlockByRequirements(items, stats, currentIds) {
 export function AppProvider({ authSession = null, children, onLogout = () => {} }) {
   const [activePage, setActivePage] = useState("home");
   const [goalsByDate, setGoalsByDate] = useState(() => getAllGoals());
+  const [classicGoals, setClassicGoals] = useState(() => getClassicGoals());
   const [scheduledGoals, setScheduledGoals] = useState(() => getScheduledGoals());
+  const [categoryColors, setCategoryColors] = useState(() => getCategoryColors());
   const [journalEntries, setJournalEntries] = useState(() =>
     getData(STORAGE_KEYS.journalEntries, {}),
   );
@@ -143,10 +152,53 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setGoalsByDate(getAllGoals());
   }
 
+  function addClassicGoal(goal) {
+    const saved = saveClassicGoal(goal);
+    setClassicGoals(getClassicGoals());
+    persistStats(withMood(pandaStats, "idle", "Classic goal added"));
+    setToast("Classic goal created");
+    return saved;
+  }
+
+  function editClassicGoal(id, updates) {
+    setClassicGoals(updateClassicGoal(id, updates));
+  }
+
+  function toggleClassicGoal(id) {
+    const goal = classicGoals.find((item) => item.id === id);
+    if (!goal) return;
+
+    if (!goal.completed) {
+      const confirmed = window.confirm("Are you sure this goal is truly completed?");
+      if (!confirmed) return;
+    }
+
+    const completingForFirstTime = !goal.completed && !goal.xpAwarded;
+    const nextClassicGoals = updateClassicGoal(id, {
+      completed: !goal.completed,
+      xpAwarded: goal.xpAwarded || !goal.completed,
+    });
+    setClassicGoals(nextClassicGoals);
+
+    if (completingForFirstTime) {
+      persistStats(completeGoalStats(pandaStats, goal, false));
+    } else if (!goal.completed) {
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+    } else {
+      persistStats(withMood(pandaStats, "idle", "Classic goal unchecked"));
+    }
+  }
+
+  function removeClassicGoal(id) {
+    setClassicGoals(deleteClassicGoal(id));
+    persistStats(withMood(pandaStats, "idle", "Classic goal removed"));
+  }
+
   function addScheduledGoal(goal) {
     const saved = saveScheduledGoal(goal);
     setScheduledGoals(getScheduledGoals());
     persistStats(withMood(pandaStats, "idle", "Scheduled goal added"));
+    setToast(`${goal.title} block saved for ${goal.startTime} - ${goal.endTime}.`);
     return saved;
   }
 
@@ -239,7 +291,13 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     let nextGoals = goalsByDate;
     let nextStats = focusFinishedStats(pandaStats);
 
-    if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
+    if (timerGoal?.type === "classic" && timerGoal?.id && !timerGoal.completed) {
+      const firstAward = !timerGoal.xpAwarded;
+      const nextClassicGoals = updateClassicGoal(timerGoal.id, { completed: true, xpAwarded: true });
+      setClassicGoals(nextClassicGoals);
+      nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
+      setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
+    } else if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
       updateGoal(timerGoal.date, timerGoal.id, { completed: true, xpAwarded: true });
       nextGoals = getAllGoals();
@@ -269,6 +327,17 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setSettingsState(next);
   }
 
+  function updateCategoryColor(category, color) {
+    const next = saveCategoryColors({ ...categoryColors, [category]: color });
+    setCategoryColors(next);
+  }
+
+  function resetCategoryColors() {
+    const next = saveCategoryColors(DEFAULT_CATEGORY_COLORS);
+    setCategoryColors(next);
+    setToast("Category colors reset");
+  }
+
   function equipOutfit(outfitId) {
     setEquippedOutfit(saveData(STORAGE_KEYS.equippedOutfit, outfitId));
   }
@@ -276,12 +345,14 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   function resetAppData() {
     resetAllData();
     setGoalsByDate({});
+    setClassicGoals([]);
     setJournalEntries({});
     setPandaStats(getPandaStats());
     setUnlockedOutfits([]);
     setUnlockedDecorations([]);
     setUnlockedAchievements([]);
     setScheduledGoals([]);
+    setCategoryColors(getCategoryColors());
     setDailyRewards({ lastClaimedDate: "", lastReward: null });
     setEquippedOutfit("");
     setToast("Local panda data reset");
@@ -290,14 +361,18 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   const value = useMemo(
     () => ({
       activePage,
+      addClassicGoal,
       addGoal,
       addScheduledGoal,
       authSession,
+      categoryColors,
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
       clearToast: () => setToast(""),
       currentMonth,
       dailyRewards,
+      classicGoals,
+      editClassicGoal,
       editGoal,
       editScheduledGoal,
       equipOutfit,
@@ -306,8 +381,10 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       goalsByDate,
       journalEntries,
       pandaStats,
+      removeClassicGoal,
       removeGoal,
       resetAppData,
+      resetCategoryColors,
       logout: onLogout,
       removeScheduledGoal,
       saveJournalEntry,
@@ -321,16 +398,20 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       startFocus,
       timerGoal,
       toast,
+      toggleClassicGoal,
       toggleGoal,
       toggleScheduledGoal,
       unlockedAchievements,
       unlockedDecorations,
       unlockedOutfits,
+      updateCategoryColor,
       updateSettings,
     }),
     [
       activePage,
       authSession,
+      categoryColors,
+      classicGoals,
       currentMonth,
       dailyRewards,
       equippedOutfit,

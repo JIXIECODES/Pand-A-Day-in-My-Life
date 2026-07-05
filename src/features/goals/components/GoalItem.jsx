@@ -1,22 +1,29 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
+import { GOAL_CATEGORIES } from "../../../shared/utils/storage.js";
 
 function goalToForm(goal) {
   return {
     title: goal.title || "",
     description: goal.description || "",
-    note: goal.note || "",
     difficulty: goal.difficulty || "easy",
-    startTime: goal.startTime || "",
-    endTime: goal.endTime || "",
     category: goal.category || "Personal",
   };
 }
 
 export default function GoalItem({ date, goal }) {
-  const { editGoal, removeGoal, setTimerGoal, toggleGoal } = useAppContext();
+  const {
+    editClassicGoal,
+    editGoal,
+    removeClassicGoal,
+    removeGoal,
+    setTimerGoal,
+    toggleClassicGoal,
+    toggleGoal,
+  } = useAppContext();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => goalToForm(goal));
+  const isClassic = goal.type === "classic";
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -26,7 +33,12 @@ export default function GoalItem({ date, goal }) {
   function saveEdit(event) {
     event.preventDefault();
     if (!form.title.trim()) return;
-    editGoal(date, goal.id, form);
+
+    if (isClassic) {
+      editClassicGoal(goal.id, form);
+    } else {
+      editGoal(date, goal.id, form);
+    }
     setEditing(false);
   }
 
@@ -45,17 +57,10 @@ export default function GoalItem({ date, goal }) {
             className="min-h-20 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-pink-300"
             name="description"
             onChange={updateField}
-            placeholder="Description"
+            placeholder="Description or note"
             value={form.description}
           />
-          <textarea
-            className="min-h-20 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-pink-300"
-            name="note"
-            onChange={updateField}
-            placeholder="Note"
-            value={form.note}
-          />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-black uppercase text-zinc-500">
               Difficulty
               <select className="mt-1 w-full rounded-2xl border border-zinc-200 bg-white px-3 py-2" name="difficulty" onChange={updateField} value={form.difficulty}>
@@ -65,21 +70,11 @@ export default function GoalItem({ date, goal }) {
               </select>
             </label>
             <label className="text-xs font-black uppercase text-zinc-500">
-              Start
-              <input className="mt-1 w-full rounded-2xl border border-zinc-200 bg-white px-3 py-2" name="startTime" onChange={updateField} type="time" value={form.startTime} />
-            </label>
-            <label className="text-xs font-black uppercase text-zinc-500">
-              End
-              <input className="mt-1 w-full rounded-2xl border border-zinc-200 bg-white px-3 py-2" name="endTime" onChange={updateField} type="time" value={form.endTime} />
-            </label>
-            <label className="text-xs font-black uppercase text-zinc-500">
               Category
               <select className="mt-1 w-full rounded-2xl border border-zinc-200 bg-white px-3 py-2" name="category" onChange={updateField} value={form.category}>
-                <option>Personal</option>
-                <option>School</option>
-                <option>Work</option>
-                <option>Health</option>
-                <option>Creative</option>
+                {GOAL_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
               </select>
             </label>
           </div>
@@ -102,20 +97,20 @@ export default function GoalItem({ date, goal }) {
         <input
           checked={goal.completed}
           className="mt-1 size-5 accent-emerald-500"
-          onChange={() => toggleGoal(date, goal.id)}
+          onChange={() => (isClassic ? toggleClassicGoal(goal.id) : toggleGoal(date, goal.id))}
           type="checkbox"
         />
         <div className="min-w-0 flex-1">
           <h3 className={`font-black text-zinc-900 ${goal.completed ? "line-through" : ""}`}>{goal.title}</h3>
           {goal.description && <p className="mt-1 text-sm font-semibold text-zinc-600">{goal.description}</p>}
-          {goal.note && <p className="mt-2 rounded-2xl bg-white/80 p-3 text-sm font-semibold text-zinc-600">{goal.note}</p>}
+          {isClassic && (
+            <p className="mt-2 text-xs font-black uppercase text-zinc-400">
+              Created {new Date(goal.createdAt).toLocaleDateString()}
+            </p>
+          )}
           <div className="mt-2 flex flex-wrap gap-2 text-xs font-black uppercase">
             <span className="rounded-full bg-pink-100 px-3 py-1 text-pink-700">{goal.difficulty || "easy"}</span>
-            {goal.startTime && goal.endTime && (
-              <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-700">
-                {goal.startTime} - {goal.endTime}
-              </span>
-            )}
+            <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-700">{goal.category || "Personal"}</span>
             {goal.xpAwarded && <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">XP earned</span>}
           </div>
         </div>
@@ -124,10 +119,10 @@ export default function GoalItem({ date, goal }) {
         <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setEditing(true)} type="button">
           Edit
         </button>
-        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal({ ...goal, date })} type="button">
+        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal(isClassic ? goal : { ...goal, date })} type="button">
           Focus
         </button>
-        <button className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700" onClick={() => removeGoal(date, goal.id)} type="button">
+        <button className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700" onClick={() => (isClassic ? removeClassicGoal(goal.id) : removeGoal(date, goal.id))} type="button">
           Delete
         </button>
       </div>

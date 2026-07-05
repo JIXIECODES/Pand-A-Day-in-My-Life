@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
+import { GOAL_CATEGORIES } from "../../../shared/utils/storage.js";
 
 const emptyForm = {
   title: "",
@@ -24,6 +25,7 @@ const hourOptions = Array.from({ length: 25 }, (_, index) => {
 export default function GoalBlockForm({ date, editingGoal, onDone }) {
   const { addScheduledGoal, editScheduledGoal } = useAppContext();
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (editingGoal) {
@@ -38,6 +40,7 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
     } else {
       setForm(emptyForm);
     }
+    setErrors({});
   }, [editingGoal]);
 
   function updateField(event) {
@@ -47,18 +50,25 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
 
   function submit(event) {
     event.preventDefault();
-    if (!form.title.trim()) return;
+    const nextErrors = {};
+    if (!form.title.trim()) nextErrors.title = "Goal title is required.";
+    if (!form.category) nextErrors.category = "Please choose a category.";
+    if (!form.startTime || !form.endTime) nextErrors.time = "Start and end time are required.";
     if (form.endTime <= form.startTime) {
-      window.alert("End time needs to be after start time.");
-      return;
+      nextErrors.time = "End time must be after start time.";
     }
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     if (editingGoal) {
       editScheduledGoal(editingGoal.id, { ...form, date });
+      onDone();
     } else {
       addScheduledGoal({ ...form, date, completed: false });
+      setForm(emptyForm);
     }
-    onDone();
+    setErrors({});
   }
 
   return (
@@ -66,12 +76,13 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
       <p className="text-xs font-black uppercase text-pink-500">{editingGoal ? "Edit block" : "Schedule a goal"}</p>
       <div className="mt-4 grid gap-3">
         <input
-          className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-pink-300"
+          className={`rounded-2xl border bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-pink-300 ${errors.title ? "border-rose-200" : "border-zinc-200"}`}
           name="title"
           onChange={updateField}
           placeholder="Goal title"
           value={form.title}
         />
+        {errors.title && <p className="text-xs font-bold text-rose-500">{errors.title}</p>}
         <textarea
           className="min-h-24 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-pink-300"
           name="description"
@@ -113,6 +124,7 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
             </select>
           </label>
         </div>
+        {errors.time && <p className="text-xs font-bold text-rose-500">{errors.time}</p>}
         <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-category">
           Category
           <select
@@ -122,12 +134,11 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
             onChange={updateField}
             value={form.category}
           >
-            <option>Personal</option>
-            <option>School</option>
-            <option>Work</option>
-            <option>Health</option>
-            <option>Creative</option>
+            {GOAL_CATEGORIES.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
           </select>
+          {errors.category && <span className="mt-1 block text-xs font-bold text-rose-500">{errors.category}</span>}
         </label>
         <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-difficulty">
           Difficulty
