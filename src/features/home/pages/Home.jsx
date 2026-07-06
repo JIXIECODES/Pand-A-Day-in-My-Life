@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import DailyReward from "../../rewards/components/DailyReward.jsx";
 import FocusTimer from "../../goals/components/FocusTimer.jsx";
 import HomeGoals from "../../goals/components/HomeGoals.jsx";
+import PandaTutorial from "../components/PandaTutorial.jsx";
 import PandaCompanion from "../../panda/components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../../panda/components/PandaMoodDisplay.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
@@ -34,6 +35,8 @@ export default function Home() {
             <DailyReward />
           </div>
         </div>
+
+        <PandaTutorial />
 
         <HomeGoals />
 

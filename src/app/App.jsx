@@ -22,7 +22,7 @@ function AppContent() {
     <div className={`min-h-screen bg-gradient-to-br ${theme.page} text-zinc-900`}>
       <Navbar />
       {toast && (
-        <div className="fixed right-4 top-24 z-50 max-w-sm rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-xl">
+        <div className="fixed right-4 top-4 z-[9999] max-w-sm rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-2xl shadow-zinc-950/20">
           {toast}
         </div>
       )}

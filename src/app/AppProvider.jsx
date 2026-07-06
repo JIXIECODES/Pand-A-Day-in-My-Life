@@ -162,6 +162,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
 
   function editClassicGoal(id, updates) {
     setClassicGoals(updateClassicGoal(id, updates));
+    setToast("Classic goal updated");
   }
 
   function toggleClassicGoal(id) {
@@ -192,6 +193,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   function removeClassicGoal(id) {
     setClassicGoals(deleteClassicGoal(id));
     persistStats(withMood(pandaStats, "idle", "Classic goal removed"));
+    setToast("Classic goal deleted");
   }
 
   function addScheduledGoal(goal) {
@@ -204,6 +206,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
 
   function editScheduledGoal(id, updates) {
     setScheduledGoals(updateScheduledGoal(id, updates));
+    setToast("Scheduled goal updated");
   }
 
   function toggleScheduledGoal(id) {
@@ -234,6 +237,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   function removeScheduledGoal(id) {
     setScheduledGoals(deleteScheduledGoal(id));
     persistStats(withMood(pandaStats, "idle", "Scheduled goal removed"));
+    setToast("Scheduled goal deleted");
   }
 
   function toggleGoal(date, id) {
