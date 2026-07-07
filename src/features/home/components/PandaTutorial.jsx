@@ -42,18 +42,20 @@ const guideSections = [
   },
 ];
 
-export default function PandaTutorial() {
+export default function PandaTutorial({ compact = false }) {
   return (
     <section className="rounded-[2rem] bg-white/80 p-5 shadow-xl shadow-zinc-200/60">
       <div className="mb-4">
         <p className="text-xs font-black uppercase text-pink-500">Panda Care Guide</p>
-        <h2 className="text-2xl font-black text-zinc-950">How to Raise Your Panda</h2>
-        <p className="mt-1 text-sm font-semibold text-zinc-500">
-          A quick guide to the habits and Planning tools that help your panda grow, feel happier, and stay energized.
-        </p>
+        <h2 className={`${compact ? "text-xl" : "text-2xl"} font-black text-zinc-950`}>How to Raise Your Panda</h2>
+        {!compact && (
+          <p className="mt-1 text-sm font-semibold text-zinc-500">
+            A quick guide to the habits and Planning tools that help your panda grow, feel happier, and stay energized.
+          </p>
+        )}
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-4">
+      <div className={compact ? "grid gap-3" : "grid gap-3 lg:grid-cols-4"}>
         {guideSections.map((section) => (
           <article className="rounded-3xl bg-zinc-50 p-4" key={section.title}>
             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black uppercase ${section.accent}`}>
