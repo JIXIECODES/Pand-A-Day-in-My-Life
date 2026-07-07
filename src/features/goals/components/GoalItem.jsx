@@ -15,15 +15,19 @@ export default function GoalItem({ date, goal }) {
   const {
     editClassicGoal,
     editGoal,
+    editLongTermGoal,
     removeClassicGoal,
     removeGoal,
+    removeLongTermGoal,
     setTimerGoal,
     toggleClassicGoal,
     toggleGoal,
+    toggleLongTermGoal,
   } = useAppContext();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => goalToForm(goal));
   const isClassic = goal.type === "classic";
+  const isLongTerm = goal.type === "longTerm";
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -36,6 +40,8 @@ export default function GoalItem({ date, goal }) {
 
     if (isClassic) {
       editClassicGoal(goal.id, form);
+    } else if (isLongTerm) {
+      editLongTermGoal(goal.id, form);
     } else {
       editGoal(date, goal.id, form);
     }
@@ -97,13 +103,17 @@ export default function GoalItem({ date, goal }) {
         <input
           checked={goal.completed}
           className="mt-1 size-5 accent-emerald-500"
-          onChange={() => (isClassic ? toggleClassicGoal(goal.id) : toggleGoal(date, goal.id))}
+          onChange={() => {
+            if (isClassic) toggleClassicGoal(goal.id);
+            else if (isLongTerm) toggleLongTermGoal(goal.id);
+            else toggleGoal(date, goal.id);
+          }}
           type="checkbox"
         />
         <div className="min-w-0 flex-1">
           <h3 className={`font-black text-zinc-900 ${goal.completed ? "line-through" : ""}`}>{goal.title}</h3>
           {goal.description && <p className="mt-1 text-sm font-semibold text-zinc-600">{goal.description}</p>}
-          {isClassic && (
+          {(isClassic || isLongTerm) && (
             <p className="mt-2 text-xs font-black uppercase text-zinc-400">
               Created {new Date(goal.createdAt).toLocaleDateString()}
             </p>
@@ -119,10 +129,14 @@ export default function GoalItem({ date, goal }) {
         <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setEditing(true)} type="button">
           Edit
         </button>
-        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal(isClassic ? goal : { ...goal, date })} type="button">
+        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal(isClassic || isLongTerm ? goal : { ...goal, date })} type="button">
           Focus
         </button>
-        <button className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700" onClick={() => (isClassic ? removeClassicGoal(goal.id) : removeGoal(date, goal.id))} type="button">
+        <button className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700" onClick={() => {
+          if (isClassic) removeClassicGoal(goal.id);
+          else if (isLongTerm) removeLongTermGoal(goal.id);
+          else removeGoal(date, goal.id);
+        }} type="button">
           Delete
         </button>
       </div>

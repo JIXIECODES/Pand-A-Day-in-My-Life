@@ -6,7 +6,7 @@ const guideSections = [
     accent: "bg-amber-100 text-amber-800",
     items: [
       "Your panda levels up by earning XP.",
-      "Completing Classic Goals or scheduled Calendar goals gives XP based on difficulty: easy, medium, or hard.",
+      "Completing Daily Goals, Long-Term Goals, or scheduled Planning time blocks gives XP based on difficulty.",
       "Finishing a focus timer gives XP, and it can also complete the selected goal for its goal XP.",
       "Saving a journal memory gives a small XP boost.",
       "Daily rewards sometimes give XP.",
@@ -17,7 +17,7 @@ const guideSections = [
     accent: "bg-pink-100 text-pink-700",
     items: [
       "Happiness grows when you make positive progress.",
-      "Completing Classic Goals or scheduled Calendar goals increases happiness.",
+      "Completing Daily Goals, Long-Term Goals, or scheduled Planning time blocks increases happiness.",
       "Saving journal memories and finishing focus timer sessions also raise happiness.",
       "Daily rewards sometimes give happiness, and claiming them always counts as panda care.",
     ],
@@ -31,6 +31,15 @@ const guideSections = [
       "The app has a gentle missed-deadline energy loss rule prepared, but it is not currently applied during normal goal creation or completion.",
     ],
   },
+  {
+    title: "Planning",
+    accent: "bg-sky-100 text-sky-800",
+    items: [
+      "Use the Planning page's Goals tab for Daily Goals and Long-Term Goals.",
+      "Create, edit, delete, and complete unscheduled goals in the Goals tab.",
+      "Use the Calendar tab to click dates and schedule time-blocked goals with exact start and end times.",
+    ],
+  },
 ];
 
 export default function PandaTutorial() {
@@ -40,11 +49,11 @@ export default function PandaTutorial() {
         <p className="text-xs font-black uppercase text-pink-500">Panda Care Guide</p>
         <h2 className="text-2xl font-black text-zinc-950">How to Raise Your Panda</h2>
         <p className="mt-1 text-sm font-semibold text-zinc-500">
-          A quick guide to the habits that help your panda grow, feel happier, and stay energized.
+          A quick guide to the habits and Planning tools that help your panda grow, feel happier, and stay energized.
         </p>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid gap-3 lg:grid-cols-4">
         {guideSections.map((section) => (
           <article className="rounded-3xl bg-zinc-50 p-4" key={section.title}>
             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black uppercase ${section.accent}`}>

@@ -22,11 +22,13 @@ import {
   DEFAULT_CATEGORY_COLORS,
   deleteClassicGoal,
   deleteGoal,
+  deleteLongTermGoal,
   deleteScheduledGoal,
   getAllGoals,
   getCategoryColors,
   getClassicGoals,
   getData,
+  getLongTermGoals,
   getPandaStats,
   getScheduledGoals,
   getSettings,
@@ -35,11 +37,13 @@ import {
   saveClassicGoal,
   saveData,
   saveGoal,
+  saveLongTermGoal,
   saveScheduledGoal,
   saveSettings,
   STORAGE_KEYS,
   updateClassicGoal,
   updateGoal,
+  updateLongTermGoal,
   updateScheduledGoal,
 } from "../shared/utils/storage.js";
 
@@ -94,6 +98,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   const [activePage, setActivePage] = useState("home");
   const [goalsByDate, setGoalsByDate] = useState(() => getAllGoals());
   const [classicGoals, setClassicGoals] = useState(() => getClassicGoals());
+  const [longTermGoals, setLongTermGoals] = useState(() => getLongTermGoals());
   const [scheduledGoals, setScheduledGoals] = useState(() => getScheduledGoals());
   const [categoryColors, setCategoryColors] = useState(() => getCategoryColors());
   const [journalEntries, setJournalEntries] = useState(() =>
@@ -204,15 +209,28 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   function addClassicGoal(goal) {
     const saved = saveClassicGoal(goal);
     setClassicGoals(getClassicGoals());
-    const nextStats = persistStats(withMood(pandaStats, "idle", "Classic goal added"));
+    const nextStats = persistStats(withMood(pandaStats, "idle", "Daily goal added"));
     completeDailyTask("create-classic-goal", nextStats);
-    setToast("Classic goal created");
+    setToast("Daily goal created");
     return saved;
   }
 
   function editClassicGoal(id, updates) {
     setClassicGoals(updateClassicGoal(id, updates));
-    setToast("Classic goal updated");
+    setToast("Daily goal updated");
+  }
+
+  function addLongTermGoal(goal) {
+    const saved = saveLongTermGoal(goal);
+    setLongTermGoals(getLongTermGoals());
+    persistStats(withMood(pandaStats, "idle", "Long-term goal added"));
+    setToast("Long-term goal created");
+    return saved;
+  }
+
+  function editLongTermGoal(id, updates) {
+    setLongTermGoals(updateLongTermGoal(id, updates));
+    setToast("Long-term goal updated");
   }
 
   function toggleClassicGoal(id) {
@@ -237,14 +255,46 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats));
     } else {
-      persistStats(withMood(pandaStats, "idle", "Classic goal unchecked"));
+      persistStats(withMood(pandaStats, "idle", "Daily goal unchecked"));
+    }
+  }
+
+  function toggleLongTermGoal(id) {
+    const goal = longTermGoals.find((item) => item.id === id);
+    if (!goal) return;
+
+    if (!goal.completed) {
+      const confirmed = window.confirm("Are you sure this goal is truly completed?");
+      if (!confirmed) return;
+    }
+
+    const completingForFirstTime = !goal.completed && !goal.xpAwarded;
+    const nextLongTermGoals = updateLongTermGoal(id, {
+      completed: !goal.completed,
+      xpAwarded: goal.xpAwarded || !goal.completed,
+    });
+    setLongTermGoals(nextLongTermGoals);
+
+    if (completingForFirstTime) {
+      const nextStats = persistStats(completeGoalStats(pandaStats, goal, false));
+      completeDailyTask("complete-goal", nextStats);
+    } else if (!goal.completed) {
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+    } else {
+      persistStats(withMood(pandaStats, "idle", "Long-term goal unchecked"));
     }
   }
 
   function removeClassicGoal(id) {
     setClassicGoals(deleteClassicGoal(id));
-    persistStats(withMood(pandaStats, "idle", "Classic goal removed"));
-    setToast("Classic goal deleted");
+    persistStats(withMood(pandaStats, "idle", "Daily goal removed"));
+    setToast("Daily goal deleted");
+  }
+
+  function removeLongTermGoal(id) {
+    setLongTermGoals(deleteLongTermGoal(id));
+    persistStats(withMood(pandaStats, "idle", "Long-term goal removed"));
+    setToast("Long-term goal deleted");
   }
 
   function addScheduledGoal(goal) {
@@ -373,6 +423,13 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
       completedGoalForTask = firstAward;
       setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
+    } else if (timerGoal?.type === "longTerm" && timerGoal?.id && !timerGoal.completed) {
+      const firstAward = !timerGoal.xpAwarded;
+      const nextLongTermGoals = updateLongTermGoal(timerGoal.id, { completed: true, xpAwarded: true });
+      setLongTermGoals(nextLongTermGoals);
+      nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
+      completedGoalForTask = firstAward;
+      setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
     } else if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
       updateGoal(timerGoal.date, timerGoal.id, { completed: true, xpAwarded: true });
@@ -426,6 +483,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     resetAllData();
     setGoalsByDate({});
     setClassicGoals([]);
+    setLongTermGoals([]);
     setJournalEntries({});
     setPandaStats(getPandaStats());
     setUnlockedOutfits([]);
@@ -444,6 +502,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       activePage,
       addClassicGoal,
       addGoal,
+      addLongTermGoal,
       addScheduledGoal,
       authSession,
       categoryColors,
@@ -456,16 +515,19 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       classicGoals,
       editClassicGoal,
       editGoal,
+      editLongTermGoal,
       editScheduledGoal,
       equipOutfit,
       equippedOutfit,
       finishFocusTimer,
       goalsByDate,
       journalEntries,
+      longTermGoals,
       pandaStats,
       removeClassicGoal,
       removeGoal,
       removeJournalEntry,
+      removeLongTermGoal,
       resetAppData,
       resetCategoryColors,
       logout: onLogout,
@@ -483,6 +545,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       toast,
       toggleClassicGoal,
       toggleGoal,
+      toggleLongTermGoal,
       toggleScheduledGoal,
       unlockedAchievements,
       unlockedDecorations,
@@ -501,6 +564,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       equippedOutfit,
       goalsByDate,
       journalEntries,
+      longTermGoals,
       pandaStats,
       scheduledGoals,
       selectedDate,

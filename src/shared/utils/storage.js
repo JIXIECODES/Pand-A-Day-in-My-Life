@@ -3,6 +3,7 @@ import { DEFAULT_PANDA_STATS } from "../../features/panda/utils/pandaLogic.js";
 export const STORAGE_KEYS = {
   goals: "panda-day-goals",
   classicGoals: "classicGoals",
+  longTermGoals: "panda-day-long-term-goals",
   journalEntries: "panda-day-journal-entries",
   pandaStats: "panda-day-panda-stats",
   unlockedOutfits: "panda-day-unlocked-outfits",
@@ -152,6 +153,48 @@ export function deleteClassicGoal(id) {
   const classicGoals = getClassicGoals().filter((goal) => goal.id !== id);
   saveData(STORAGE_KEYS.classicGoals, classicGoals);
   return classicGoals;
+}
+
+export function getLongTermGoals() {
+  return getData(STORAGE_KEYS.longTermGoals, []).map((goal) => ({
+    ...goal,
+    type: "longTerm",
+    category: goal.category || "Personal",
+    difficulty: goal.difficulty || "medium",
+    xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
+  }));
+}
+
+export function saveLongTermGoal(goal) {
+  const longTermGoals = getLongTermGoals();
+  const nextGoal = {
+    id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
+    type: "longTerm",
+    title: goal.title,
+    description: goal.description || "",
+    category: goal.category || "Personal",
+    difficulty: goal.difficulty || "medium",
+    completed: false,
+    xpAwarded: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveData(STORAGE_KEYS.longTermGoals, [nextGoal, ...longTermGoals]);
+  return nextGoal;
+}
+
+export function updateLongTermGoal(id, updates = {}) {
+  const longTermGoals = getLongTermGoals().map((goal) =>
+    goal.id === id ? { ...goal, ...updates, type: "longTerm" } : goal,
+  );
+  saveData(STORAGE_KEYS.longTermGoals, longTermGoals);
+  return longTermGoals;
+}
+
+export function deleteLongTermGoal(id) {
+  const longTermGoals = getLongTermGoals().filter((goal) => goal.id !== id);
+  saveData(STORAGE_KEYS.longTermGoals, longTermGoals);
+  return longTermGoals;
 }
 
 export function getSettings() {
