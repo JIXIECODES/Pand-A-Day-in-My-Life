@@ -36,6 +36,9 @@ export default function Home() {
             </section>
             <DailyReward />
           </div>
+          <div className="hidden lg:block">
+            <PandaTutorial />
+          </div>
         </div>
 
         <div className="grid gap-5">
@@ -59,7 +62,9 @@ export default function Home() {
         </div>
       </section>
 
-      <PandaTutorial />
+      <div className="lg:hidden">
+        <PandaTutorial />
+      </div>
     </main>
   );
 }
