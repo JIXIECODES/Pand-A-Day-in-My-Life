@@ -18,44 +18,45 @@ export default function Home() {
   const activeGoalCount = [...classicGoals, ...longTermGoals].filter((goal) => !goal.completed).length;
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_22rem]">
-      <section className="space-y-5">
-        <div className="rounded-[2rem] bg-white/70 p-6 shadow-xl shadow-zinc-200/60 backdrop-blur">
-          <p className="text-sm font-black text-pink-500">{greetingForNow()}</p>
-          <h1 className="mt-1 text-4xl font-black text-zinc-950">What does your panda get to remember today?</h1>
-        </div>
+    <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
+      <div className="rounded-[2rem] bg-white/70 p-6 shadow-xl shadow-zinc-200/60 backdrop-blur">
+        <p className="text-sm font-black text-pink-500">{greetingForNow()}</p>
+        <h1 className="mt-1 text-4xl font-black text-zinc-950">What does your panda get to remember today?</h1>
+      </div>
 
+      <section className="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <PandaCompanion />
 
+        <aside className="space-y-5">
+          <PandaMoodDisplay />
+          <section className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
+            <p className="text-xs font-black uppercase text-pink-500">Streak</p>
+            <p className="mt-1 text-4xl font-black text-zinc-950">{pandaStats.streak}</p>
+            <p className="text-sm font-semibold text-zinc-500">days with completed goals</p>
+          </section>
+          <DailyReward />
+          <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
+            <p className="text-xs font-black uppercase text-pink-500">Recent memory</p>
+            <p className="mt-2 text-sm font-semibold text-zinc-600">
+              {latestMemory ? `Your panda remembers: "${latestMemory.text}"` : "Write a journal entry to create your first panda memory."}
+            </p>
+          </section>
+          <FocusTimer />
+        </aside>
       </section>
 
-      <aside className="space-y-5">
-        <PandaMoodDisplay />
-        <section className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
-          <p className="text-xs font-black uppercase text-pink-500">Streak</p>
-          <p className="mt-1 text-4xl font-black text-zinc-950">{pandaStats.streak}</p>
-          <p className="text-sm font-semibold text-zinc-500">days with completed goals</p>
-        </section>
-        <DailyReward />
-        <PandaTutorial compact />
-        <section className="rounded-[2rem] bg-white/75 p-5 shadow-xl shadow-zinc-200/60">
-          <p className="text-xs font-black uppercase text-pink-500">Planning preview</p>
-          <h2 className="mt-1 text-xl font-black text-zinc-950">Manage goals in Planning</h2>
-          <div className="mt-4 grid gap-3 rounded-3xl bg-zinc-50 p-4">
-            <p className="text-sm font-black text-zinc-700">{activeGoalCount} active unscheduled goals</p>
-            <button className="rounded-full bg-zinc-950 px-5 py-3 font-black text-white" onClick={() => setActivePage("calendar")} type="button">
-              Open Planning
-            </button>
-          </div>
-        </section>
-        <FocusTimer />
-        <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-          <p className="text-xs font-black uppercase text-pink-500">Recent memory</p>
-          <p className="mt-2 text-sm font-semibold text-zinc-600">
-            {latestMemory ? `Your panda remembers: "${latestMemory.text}"` : "Write a journal entry to create your first panda memory."}
-          </p>
-        </section>
-      </aside>
+      <PandaTutorial />
+
+      <section className="rounded-[2rem] bg-white/75 p-5 shadow-xl shadow-zinc-200/60">
+        <p className="text-xs font-black uppercase text-pink-500">Planning preview</p>
+        <h2 className="mt-1 text-2xl font-black text-zinc-950">Manage goals in Planning</h2>
+        <div className="mt-4 flex flex-col gap-3 rounded-3xl bg-zinc-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-black text-zinc-700">{activeGoalCount} active unscheduled goals</p>
+          <button className="rounded-full bg-zinc-950 px-5 py-3 font-black text-white" onClick={() => setActivePage("calendar")} type="button">
+            Open Planning
+          </button>
+        </div>
+      </section>
     </main>
   );
 }
