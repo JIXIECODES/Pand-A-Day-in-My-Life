@@ -24,25 +24,26 @@ export default function Home() {
         <h1 className="mt-1 text-4xl font-black text-zinc-950">What does your panda get to remember today?</h1>
       </div>
 
-      <section className="grid gap-5 lg:grid-cols-[1fr_22rem]">
+      <section className="grid gap-5 lg:grid-cols-3">
         <PandaCompanion />
+        <PandaMoodDisplay />
+        <section className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
+          <p className="text-xs font-black uppercase text-pink-500">Streak</p>
+          <p className="mt-1 text-4xl font-black text-zinc-950">{pandaStats.streak}</p>
+          <p className="text-sm font-semibold text-zinc-500">days with completed goals</p>
+        </section>
+      </section>
 
-        <aside className="space-y-5">
-          <PandaMoodDisplay />
-          <section className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
-            <p className="text-xs font-black uppercase text-pink-500">Streak</p>
-            <p className="mt-1 text-4xl font-black text-zinc-950">{pandaStats.streak}</p>
-            <p className="text-sm font-semibold text-zinc-500">days with completed goals</p>
-          </section>
-          <DailyReward />
-          <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-            <p className="text-xs font-black uppercase text-pink-500">Recent memory</p>
-            <p className="mt-2 text-sm font-semibold text-zinc-600">
-              {latestMemory ? `Your panda remembers: "${latestMemory.text}"` : "Write a journal entry to create your first panda memory."}
-            </p>
-          </section>
-          <FocusTimer />
-        </aside>
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
+        <FocusTimer />
+        <DailyReward />
+      </section>
+
+      <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
+        <p className="text-xs font-black uppercase text-pink-500">Recent memory</p>
+        <p className="mt-2 text-sm font-semibold text-zinc-600">
+          {latestMemory ? `Your panda remembers: "${latestMemory.text}"` : "Write a journal entry to create your first panda memory."}
+        </p>
       </section>
 
       <PandaTutorial />
