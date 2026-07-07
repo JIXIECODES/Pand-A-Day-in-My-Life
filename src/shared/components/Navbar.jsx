@@ -2,12 +2,12 @@ import React from "react";
 import { useAppContext } from "../../app/AppProvider.jsx";
 
 const links = [
-  { id: "home", label: "Home", icon: "🏠" },
-  { id: "calendar", label: "Planning", icon: "🗓️" },
-  { id: "panda", label: "Panda", icon: "🐼" },
-  { id: "journal", label: "Journal", icon: "📖" },
-  { id: "rewards", label: "Rewards", icon: "🎁" },
-  { id: "settings", label: "Settings", icon: "⚙️" },
+  { id: "home", label: "\u{1F3E0} Home" },
+  { id: "calendar", label: "\u{1F5D3}\uFE0F Planning" },
+  { id: "panda", label: "\u{1F43C} Panda" },
+  { id: "journal", label: "\u{1F4D6} Journal" },
+  { id: "rewards", label: "\u{1F381} Rewards" },
+  { id: "settings", label: "\u2699\uFE0F Settings" },
 ];
 
 export default function Navbar() {
@@ -37,7 +37,6 @@ export default function Navbar() {
               onClick={() => setActivePage(link.id)}
               type="button"
             >
-              <span className="text-base leading-none" aria-hidden="true">{link.icon}</span>
               {link.label}
             </button>
           ))}
