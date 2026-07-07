@@ -1,13 +1,14 @@
 import React from "react";
 import { achievements } from "../../../data/achievements.js";
 import AchievementCard from "../components/AchievementCard.jsx";
+import DailyTasks from "../components/DailyTasks.jsx";
 import DailyReward from "../components/DailyReward.jsx";
 import DecorationShelf from "../../panda/components/DecorationShelf.jsx";
 import OutfitSelector from "../../panda/components/OutfitSelector.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 
 export default function RewardsPage() {
-  const { unlockedAchievements } = useAppContext();
+  const { dailyTasks, unlockedAchievements } = useAppContext();
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[20rem_1fr]">
@@ -19,6 +20,7 @@ export default function RewardsPage() {
         </section>
       </aside>
       <section className="space-y-5">
+        <DailyTasks dailyTasks={dailyTasks} />
         <div className="rounded-[2rem] bg-white/70 p-5 shadow-xl shadow-zinc-200/60">
           <h2 className="text-2xl font-black text-zinc-950">Achievements</h2>
           <div className="mt-4 grid gap-3 lg:grid-cols-2">

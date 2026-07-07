@@ -3,6 +3,11 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 import { decorations } from "../data/decorations.js";
 import { outfits } from "../data/outfits.js";
 import { evaluateAchievements } from "../features/rewards/utils/achievementLogic.js";
+import {
+  applyDailyTaskReward,
+  completeDailyTaskState,
+  getDailyTaskStateForDate,
+} from "../features/rewards/utils/dailyTaskLogic.js";
 import { todayKey } from "../features/calendar/utils/dateUtils.js";
 import {
   celebrateAlreadyAwardedGoal,
@@ -40,6 +45,22 @@ import {
 
 const AppContext = createContext(null);
 
+function normalizeJournalEntries(entries = {}) {
+  return Object.fromEntries(
+    Object.entries(entries).map(([key, entry]) => {
+      const normalized = {
+        id: entry.id || key,
+        date: entry.date || key,
+        text: entry.text || "",
+        createdAt: entry.createdAt || entry.updatedAt || new Date().toISOString(),
+        updatedAt: entry.updatedAt || entry.createdAt || new Date().toISOString(),
+      };
+
+      return [normalized.id, normalized];
+    }),
+  );
+}
+
 function deriveStreak(goalsByDate) {
   return Object.entries(goalsByDate).filter(([, goals]) => goals.some((goal) => goal.completed)).length;
 }
@@ -76,7 +97,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   const [scheduledGoals, setScheduledGoals] = useState(() => getScheduledGoals());
   const [categoryColors, setCategoryColors] = useState(() => getCategoryColors());
   const [journalEntries, setJournalEntries] = useState(() =>
-    getData(STORAGE_KEYS.journalEntries, {}),
+    normalizeJournalEntries(getData(STORAGE_KEYS.journalEntries, {})),
   );
   const [pandaStats, setPandaStats] = useState(() => getPandaStats());
   const [settings, setSettingsState] = useState(() => getSettings());
@@ -85,6 +106,9 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   const [timerGoal, setTimerGoal] = useState(null);
   const [dailyRewards, setDailyRewards] = useState(() =>
     getData(STORAGE_KEYS.dailyRewards, { lastClaimedDate: "", lastReward: null }),
+  );
+  const [dailyTasks, setDailyTasks] = useState(() =>
+    getDailyTaskStateForDate(getData(STORAGE_KEYS.dailyTasks, null), todayKey()),
   );
   const [unlockedOutfits, setUnlockedOutfits] = useState(() =>
     getData(STORAGE_KEYS.unlockedOutfits, []),
@@ -126,6 +150,31 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     return statsWithStreak;
   }
 
+  function completeDailyTask(taskId, statsSnapshot = pandaStats, goalsSnapshot = goalsByDate) {
+    const today = todayKey();
+    const todayTasks = getDailyTaskStateForDate(dailyTasks, today);
+    const result = completeDailyTaskState(todayTasks, taskId);
+    if (!result.changed) {
+      if (todayTasks !== dailyTasks) {
+        setDailyTasks(saveData(STORAGE_KEYS.dailyTasks, todayTasks));
+      }
+      return statsSnapshot;
+    }
+
+    setDailyTasks(saveData(STORAGE_KEYS.dailyTasks, result.state));
+    const rewardedStats = applyDailyTaskReward(statsSnapshot, result.reward);
+    const savedStats = persistStats(rewardedStats, goalsSnapshot);
+    setToast("Daily task completed");
+    return savedStats;
+  }
+
+  function navigatePage(page) {
+    setActivePage(page);
+    if (page === "panda") {
+      completeDailyTask("visit-panda-page");
+    }
+  }
+
   function addGoal(date, goal) {
     const saved = saveGoal(date, goal);
     if (goal.startTime && goal.endTime) {
@@ -155,7 +204,8 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   function addClassicGoal(goal) {
     const saved = saveClassicGoal(goal);
     setClassicGoals(getClassicGoals());
-    persistStats(withMood(pandaStats, "idle", "Classic goal added"));
+    const nextStats = persistStats(withMood(pandaStats, "idle", "Classic goal added"));
+    completeDailyTask("create-classic-goal", nextStats);
     setToast("Classic goal created");
     return saved;
   }
@@ -182,7 +232,8 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setClassicGoals(nextClassicGoals);
 
     if (completingForFirstTime) {
-      persistStats(completeGoalStats(pandaStats, goal, false));
+      const nextStats = persistStats(completeGoalStats(pandaStats, goal, false));
+      completeDailyTask("complete-goal", nextStats);
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats));
     } else {
@@ -199,7 +250,8 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   function addScheduledGoal(goal) {
     const saved = saveScheduledGoal(goal);
     setScheduledGoals(getScheduledGoals());
-    persistStats(withMood(pandaStats, "idle", "Scheduled goal added"));
+    const nextStats = persistStats(withMood(pandaStats, "idle", "Scheduled goal added"));
+    completeDailyTask("schedule-time-block", nextStats);
     setToast(`${goal.title} block saved for ${goal.startTime} - ${goal.endTime}.`);
     return saved;
   }
@@ -226,7 +278,8 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setScheduledGoals(nextScheduledGoals);
 
     if (completingForFirstTime) {
-      persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      completeDailyTask("complete-goal", nextStats);
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats));
     } else {
@@ -259,7 +312,8 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
 
     if (completingForFirstTime) {
       const allDone = (nextGoals[date] || []).length > 0 && nextGoals[date].every((item) => item.completed);
-      persistStats(completeGoalStats(pandaStats, goal, allDone), nextGoals);
+      const nextStats = persistStats(completeGoalStats(pandaStats, goal, allDone), nextGoals);
+      completeDailyTask("complete-goal", nextStats, nextGoals);
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), nextGoals);
     } else {
@@ -275,31 +329,49 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   }
 
   function saveJournalEntry(date, text) {
+    if (!text.trim()) return null;
+    const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
     const nextEntries = {
       ...journalEntries,
-      [date]: {
-        text,
+      [id]: {
+        id,
+        date,
+        text: text.trim(),
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
     };
     setJournalEntries(saveData(STORAGE_KEYS.journalEntries, nextEntries));
-    persistStats(journalStats(pandaStats));
+    const nextStats = persistStats(journalStats(pandaStats));
+    completeDailyTask("write-memory", nextStats);
+    setToast("Memory saved");
+    return nextEntries[id];
+  }
+
+  function removeJournalEntry(id) {
+    const nextEntries = { ...journalEntries };
+    delete nextEntries[id];
+    setJournalEntries(saveData(STORAGE_KEYS.journalEntries, nextEntries));
+    setToast("Memory deleted");
   }
 
   function startFocus(goal = timerGoal) {
     if (goal) setTimerGoal(goal);
-    persistStats(focusStartedStats(pandaStats));
+    const nextStats = persistStats(focusStartedStats(pandaStats));
+    completeDailyTask("start-focus-timer", nextStats);
   }
 
   function finishFocusTimer() {
     let nextGoals = goalsByDate;
     let nextStats = focusFinishedStats(pandaStats);
+    let completedGoalForTask = false;
 
     if (timerGoal?.type === "classic" && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
       const nextClassicGoals = updateClassicGoal(timerGoal.id, { completed: true, xpAwarded: true });
       setClassicGoals(nextClassicGoals);
       nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
+      completedGoalForTask = firstAward;
       setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
     } else if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
@@ -307,10 +379,14 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       nextGoals = getAllGoals();
       setGoalsByDate(nextGoals);
       nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
+      completedGoalForTask = firstAward;
       setTimerGoal({ ...timerGoal, completed: true });
     }
 
-    persistStats(nextStats, nextGoals);
+    const savedStats = persistStats(nextStats, nextGoals);
+    if (completedGoalForTask) {
+      completeDailyTask("complete-goal", savedStats, nextGoals);
+    }
     setToast(timerGoal ? `Focus finished: ${timerGoal.title} is complete` : "Focus timer complete");
   }
 
@@ -358,6 +434,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setScheduledGoals([]);
     setCategoryColors(getCategoryColors());
     setDailyRewards({ lastClaimedDate: "", lastReward: null });
+    setDailyTasks(saveData(STORAGE_KEYS.dailyTasks, getDailyTaskStateForDate(null, todayKey())));
     setEquippedOutfit("");
     setToast("Local panda data reset");
   }
@@ -375,6 +452,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       clearToast: () => setToast(""),
       currentMonth,
       dailyRewards,
+      dailyTasks,
       classicGoals,
       editClassicGoal,
       editGoal,
@@ -387,6 +465,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       pandaStats,
       removeClassicGoal,
       removeGoal,
+      removeJournalEntry,
       resetAppData,
       resetCategoryColors,
       logout: onLogout,
@@ -394,7 +473,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       saveJournalEntry,
       scheduledGoals,
       selectedDate,
-      setActivePage,
+      setActivePage: navigatePage,
       setCurrentMonth,
       setSelectedDate,
       setTimerGoal,
@@ -418,6 +497,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       classicGoals,
       currentMonth,
       dailyRewards,
+      dailyTasks,
       equippedOutfit,
       goalsByDate,
       journalEntries,

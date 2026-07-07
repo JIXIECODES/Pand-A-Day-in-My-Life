@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   equippedOutfit: "panda-day-equipped-outfit",
   scheduledGoals: "panda-day-scheduled-goals",
   categoryColors: "categoryColors",
+  dailyTasks: "panda-day-daily-tasks",
 };
 
 export const DEFAULT_CATEGORY_COLORS = {
