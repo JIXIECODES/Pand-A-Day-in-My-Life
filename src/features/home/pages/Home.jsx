@@ -46,21 +46,20 @@ export default function Home() {
               {latestMemory ? `Your panda remembers: "${latestMemory.text}"` : "Write a journal entry to create your first panda memory."}
             </p>
           </section>
+          <section className="rounded-[2rem] bg-white/75 p-5 shadow-xl shadow-zinc-200/60">
+            <p className="text-xs font-black uppercase text-pink-500">Planning preview</p>
+            <h2 className="mt-1 text-2xl font-black text-zinc-950">Manage goals in Planning</h2>
+            <div className="mt-4 flex flex-col gap-3 rounded-3xl bg-zinc-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-black text-zinc-700">{activeGoalCount} active unscheduled goals</p>
+              <button className="rounded-full bg-zinc-950 px-5 py-3 font-black text-white" onClick={() => setActivePage("calendar")} type="button">
+                Open Planning
+              </button>
+            </div>
+          </section>
         </div>
       </section>
 
       <PandaTutorial />
-
-      <section className="rounded-[2rem] bg-white/75 p-5 shadow-xl shadow-zinc-200/60">
-        <p className="text-xs font-black uppercase text-pink-500">Planning preview</p>
-        <h2 className="mt-1 text-2xl font-black text-zinc-950">Manage goals in Planning</h2>
-        <div className="mt-4 flex flex-col gap-3 rounded-3xl bg-zinc-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm font-black text-zinc-700">{activeGoalCount} active unscheduled goals</p>
-          <button className="rounded-full bg-zinc-950 px-5 py-3 font-black text-white" onClick={() => setActivePage("calendar")} type="button">
-            Open Planning
-          </button>
-        </div>
-      </section>
     </main>
   );
 }
