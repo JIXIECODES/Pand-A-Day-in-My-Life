@@ -33,8 +33,14 @@ function GoalTypeInfoCard() {
 }
 
 export default function CalendarPage() {
-  const [activeTab, setActiveTab] = useState("goals");
+  const [activeTab, setActiveTab] = useState("guide");
   const [plannerOpen, setPlannerOpen] = useState(false);
+  const tabs = [
+    { id: "guide", label: "Guide" },
+    { id: "daily", label: "Daily" },
+    { id: "longTerm", label: "Long-Term" },
+    { id: "calendar", label: "Calendar" },
+  ];
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
@@ -42,34 +48,32 @@ export default function CalendarPage() {
         <p className="text-sm font-black text-pink-500">Planning</p>
         <h1 className="mt-1 text-4xl font-black text-zinc-950">Plan goals and calendar time blocks.</h1>
         <p className="mt-2 max-w-3xl text-sm font-semibold text-zinc-500">
-          Manage Daily Goals and Long-Term Goals in one place, or switch to the Calendar tab to schedule exact time blocks.
+          Use the Guide to choose a workflow, then manage Daily Goals, Long-Term Goals, or exact Calendar time blocks in their own tabs.
         </p>
-        <div className="mt-5 inline-flex rounded-full bg-zinc-100 p-1">
-          {["goals", "calendar"].map((tab) => (
+        <div className="mt-5 flex w-full flex-wrap gap-2 rounded-[1.5rem] bg-zinc-100 p-1 sm:inline-flex sm:w-auto sm:rounded-full">
+          {tabs.map((tab) => (
             <button
               className={[
-                "rounded-full px-5 py-2 text-sm font-black capitalize transition",
-                activeTab === tab ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-600 hover:bg-white",
+                "rounded-full px-5 py-2 text-sm font-black transition",
+                activeTab === tab.id ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-600 hover:bg-white",
               ].join(" ")}
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               type="button"
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
       </section>
 
-      {activeTab === "goals" ? (
-        <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]">
-          <GoalTypeInfoCard />
-          <div className="grid gap-5">
-            <HomeGoals kind="daily" />
-            <HomeGoals kind="longTerm" />
-          </div>
-        </section>
-      ) : (
+      {activeTab === "guide" && <GoalTypeInfoCard />}
+
+      {activeTab === "daily" && <HomeGoals kind="daily" />}
+
+      {activeTab === "longTerm" && <HomeGoals kind="longTerm" />}
+
+      {activeTab === "calendar" && (
         <>
           <Calendar onOpenDay={() => setPlannerOpen(true)} />
           <section className="rounded-[2rem] bg-white/70 p-5 shadow-sm">
