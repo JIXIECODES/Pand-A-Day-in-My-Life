@@ -5,10 +5,10 @@ import DayPlannerModal from "../components/DayPlannerModal.jsx";
 
 function GoalTypeInfoCard() {
   return (
-    <section className="rounded-[2rem] bg-white/80 p-5 shadow-xl shadow-zinc-200/60">
+    <section className="h-full rounded-[2rem] bg-white/80 p-5 shadow-xl shadow-zinc-200/60">
       <p className="text-xs font-black uppercase text-pink-500">Planning guide</p>
       <h2 className="mt-1 text-2xl font-black text-zinc-950">Choose the right kind of goal</h2>
-      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+      <div className="mt-4 grid gap-3">
         <article className="rounded-3xl bg-emerald-50 p-4">
           <h3 className="font-black text-emerald-950">Daily Goals</h3>
           <p className="mt-1 text-sm font-semibold text-emerald-800">
@@ -62,13 +62,13 @@ export default function CalendarPage() {
       </section>
 
       {activeTab === "goals" ? (
-        <>
+        <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]">
           <GoalTypeInfoCard />
-          <div className="grid gap-5 xl:grid-cols-2">
+          <div className="grid gap-5">
             <HomeGoals kind="daily" />
             <HomeGoals kind="longTerm" />
           </div>
-        </>
+        </section>
       ) : (
         <>
           <Calendar onOpenDay={() => setPlannerOpen(true)} />
