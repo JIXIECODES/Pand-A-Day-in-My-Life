@@ -1,5 +1,5 @@
 import React from "react";
-import { pandaMoods } from "../../../data/pandaMoods.js";
+import { getPandaMoodImage, pandaMoods } from "../../../data/pandaMoods.js";
 import { outfits } from "../../../data/outfits.js";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { xpForNextLevel } from "../utils/pandaLogic.js";
@@ -50,19 +50,18 @@ function OutfitLayer({ outfitId }) {
 export default function PandaCompanion({ compact = false }) {
   const { equippedOutfit, pandaStats } = useAppContext();
   const mood = pandaMoods[pandaStats.mood] || pandaMoods.idle;
+  const moodImage = getPandaMoodImage(pandaStats.mood);
   const outfit = outfits.find((item) => item.id === equippedOutfit);
 
   return (
     <section className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
       <div className="flex flex-col items-center text-center">
-        <div className={`relative h-48 w-52 ${mood.animation}`} aria-label={outfit ? `Panda wearing ${outfit.name}` : "Panda companion"}>
-          <div className="absolute left-4 top-7 size-14 rounded-full bg-zinc-950" />
-          <div className="absolute right-4 top-7 size-14 rounded-full bg-zinc-950" />
-          <div className="absolute left-1/2 top-6 z-0 size-36 -translate-x-1/2 rounded-full bg-zinc-950 shadow-inner" />
-          <div className="absolute left-1/2 top-12 z-10 grid size-28 -translate-x-1/2 place-items-center rounded-full bg-white text-5xl shadow-inner">
-            <span>{mood.face}</span>
-          </div>
-          <div className="absolute left-1/2 top-[7.4rem] z-0 h-20 w-32 -translate-x-1/2 rounded-[2.5rem] bg-white shadow-inner" />
+        <div className={`relative h-48 w-52 overflow-hidden rounded-[2rem] bg-white shadow-inner ring-1 ring-zinc-100 ${mood.animation}`} aria-label={outfit ? `Panda wearing ${outfit.name}` : "Panda companion"}>
+          <img
+            alt={`${mood.label} panda companion`}
+            className="h-full w-full scale-[1.75] object-contain"
+            src={moodImage}
+          />
           <OutfitLayer outfitId={equippedOutfit} />
         </div>
         <h2 className="mt-2 text-2xl font-black text-zinc-950">Your panda companion</h2>
