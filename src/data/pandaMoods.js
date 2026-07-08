@@ -1,7 +1,7 @@
-import celebrateImage from "../assets/panda-moods/Celebrate.png";
+import celebrateImage from "../assets/panda-moods/Celebration.png";
 import happyImage from "../assets/panda-moods/Happy.png";
 import idleImage from "../assets/panda-moods/Idle.png";
-import powerUpImage from "../assets/panda-moods/Power_up.png";
+import powerUpImage from "../assets/panda-moods/Level_up.png";
 import sleepyImage from "../assets/panda-moods/Sleepy.png";
 
 export const fallbackPandaMoodImage = idleImage;
