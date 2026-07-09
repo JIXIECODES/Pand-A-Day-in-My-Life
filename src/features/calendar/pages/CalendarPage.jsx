@@ -184,9 +184,9 @@ export default function CalendarPage() {
             </h2>
           </section>
           <DayPlannerModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
-          <CalendarIntroModal open={calendarIntroOpen} onClose={() => setCalendarIntroOpen(false)} />
         </>
       )}
+      <CalendarIntroModal open={calendarIntroOpen} onClose={() => setCalendarIntroOpen(false)} />
     </main>
   );
 }
