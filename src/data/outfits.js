@@ -1,3 +1,5 @@
+export const NO_OUTFIT_ID = "";
+
 export const outfits = [
   {
     id: "cozy-scarf",
@@ -42,3 +44,7 @@ export const outfits = [
     requirement: { type: "level", value: 5 },
   },
 ];
+
+export function normalizeOutfitId(outfitId) {
+  return outfits.some((outfit) => outfit.id === outfitId) ? outfitId : NO_OUTFIT_ID;
+}

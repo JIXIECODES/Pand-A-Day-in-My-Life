@@ -19,6 +19,22 @@ select {
   font: inherit;
 }
 
+.panda-mood-image {
+  width: 100%;
+  max-width: 260px;
+  max-height: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  margin: 0 auto;
+}
+
+.panda-mood-thumbnail {
+  max-width: 3.5rem;
+}
+
 .auth-input {
   width: 100%;
   border-radius: 1rem;

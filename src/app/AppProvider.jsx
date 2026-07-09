@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { decorations } from "../data/decorations.js";
-import { outfits } from "../data/outfits.js";
+import { NO_OUTFIT_ID, normalizeOutfitId, outfits } from "../data/outfits.js";
 import { evaluateAchievements } from "../features/rewards/utils/achievementLogic.js";
 import {
   applyDailyTaskReward,
@@ -125,7 +125,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     getData(STORAGE_KEYS.achievements, []),
   );
   const [equippedOutfit, setEquippedOutfit] = useState(() =>
-    getData(STORAGE_KEYS.equippedOutfit, ""),
+    normalizeOutfitId(getData(STORAGE_KEYS.equippedOutfit, "")),
   );
   const [toast, setToast] = useState("");
 
@@ -476,7 +476,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   }
 
   function equipOutfit(outfitId) {
-    setEquippedOutfit(saveData(STORAGE_KEYS.equippedOutfit, outfitId));
+    setEquippedOutfit(saveData(STORAGE_KEYS.equippedOutfit, normalizeOutfitId(outfitId)));
   }
 
   function resetAppData() {
@@ -493,7 +493,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setCategoryColors(getCategoryColors());
     setDailyRewards({ lastClaimedDate: "", lastReward: null });
     setDailyTasks(saveData(STORAGE_KEYS.dailyTasks, getDailyTaskStateForDate(null, todayKey())));
-    setEquippedOutfit("");
+    setEquippedOutfit(NO_OUTFIT_ID);
     setToast("Local panda data reset");
   }
 

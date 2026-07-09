@@ -56,10 +56,10 @@ export default function PandaCompanion({ compact = false }) {
   return (
     <section className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
       <div className="flex flex-col items-center text-center">
-        <div className={`relative h-48 w-52 overflow-hidden rounded-[2rem] bg-white shadow-inner ring-1 ring-zinc-100 ${mood.animation}`} aria-label={outfit ? `Panda wearing ${outfit.name}` : "Panda companion"}>
+        <div className={`relative grid h-48 w-52 place-items-center overflow-hidden rounded-[2rem] bg-white shadow-inner ring-1 ring-zinc-100 ${mood.animation}`} aria-label={outfit ? `Panda wearing ${outfit.name}` : "Panda companion"}>
           <img
             alt={`${mood.label} panda companion`}
-            className="h-full w-full scale-[1.75] object-contain"
+            className="panda-mood-image"
             src={moodImage}
           />
           <OutfitLayer outfitId={equippedOutfit} />

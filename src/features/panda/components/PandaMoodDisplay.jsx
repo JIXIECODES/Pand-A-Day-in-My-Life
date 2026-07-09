@@ -14,7 +14,7 @@ export default function PandaMoodDisplay() {
         <span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full bg-white shadow-inner ring-1 ring-zinc-100">
           <img
             alt={`${mood.label} panda mood`}
-            className="size-full scale-[2.2] object-contain"
+            className="panda-mood-image panda-mood-thumbnail"
             src={moodImage}
           />
         </span>
