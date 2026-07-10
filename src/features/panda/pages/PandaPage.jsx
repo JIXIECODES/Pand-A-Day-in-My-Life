@@ -28,10 +28,21 @@ const exhibitTools = [
 export default function PandaPage() {
   const { pandaStats } = useAppContext();
   const [activeTool, setActiveTool] = useState("decorate");
+  const [moodHistoryOpen, setMoodHistoryOpen] = useState(false);
+  const dressUpActive = activeTool === "dress-up";
+  const recentMoods = (pandaStats.moodHistory || []).slice(0, 5);
 
   function renderActiveTool() {
-    if (activeTool === "dress-up") {
-      return <OutfitSelector variant="closet" />;
+    if (dressUpActive) {
+      return (
+        <section className="rounded-[2rem] border border-emerald-100 bg-gradient-to-b from-emerald-50 via-white to-amber-50 p-5 shadow-xl shadow-emerald-100/60">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Dress-Up mode</p>
+          <h2 className="mt-2 text-xl font-black text-zinc-950">Bamboo closet is open</h2>
+          <p className="mt-2 text-sm font-semibold text-zinc-600">
+            Choose outfits from the horizontal closet overlay at the bottom of the habitat.
+          </p>
+        </section>
+      );
     }
 
     if (activeTool === "shop") {
@@ -39,9 +50,6 @@ export default function PandaPage() {
         <section className="rounded-[2rem] border border-pink-100 bg-gradient-to-b from-pink-50 via-white to-amber-50 p-5 text-center shadow-xl shadow-pink-100/60">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-pink-600">SHOP</p>
           <h2 className="mt-2 text-xl font-black text-zinc-950">Building in progress</h2>
-          <p className="mt-2 text-sm font-semibold text-zinc-600">
-            The shop will live here later. Your current outfits, decor, rewards, and unlocks are unchanged.
-          </p>
         </section>
       );
     }
@@ -52,8 +60,57 @@ export default function PandaPage() {
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <section className="space-y-5">
-        <PandaRoom />
+        <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)]">
+            <PandaMoodDisplay />
+            <div className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
+              <ProgressBar label={`Level ${pandaStats.level} XP`} value={pandaStats.xp} max={xpForNextLevel(pandaStats.level)} tone="pink" />
+              <div className="mt-3 grid grid-cols-2 gap-3 text-center">
+                <div className="rounded-2xl bg-emerald-50 p-3">
+                  <p className="text-xl font-black">{pandaStats.happiness}</p>
+                  <p className="text-xs font-black text-zinc-500">Happiness</p>
+                </div>
+                <div className="rounded-2xl bg-amber-50 p-3">
+                  <p className="text-xl font-black">{pandaStats.energy}</p>
+                  <p className="text-xs font-black text-zinc-500">Energy</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 rounded-[1.5rem] bg-emerald-50/70 p-3">
+            <button
+              aria-expanded={moodHistoryOpen}
+              className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-zinc-800 shadow-sm transition hover:-translate-y-0.5"
+              onClick={() => setMoodHistoryOpen((open) => !open)}
+              type="button"
+            >
+              <span>View Mood History</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-800">
+                {moodHistoryOpen ? "Hide" : `${recentMoods.length} recent`}
+              </span>
+            </button>
+            {moodHistoryOpen && (
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {recentMoods.length > 0 ? (
+                  recentMoods.map((item, index) => (
+                    <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-600 shadow-sm" key={`${item.at}-${index}`}>
+                      <span className="font-black text-zinc-950">{item.mood}:</span> {item.message}
+                    </p>
+                  ))
+                ) : (
+                  <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-500 shadow-sm">No mood history yet.</p>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <PandaRoom
+          mode={dressUpActive ? "dress-up" : "default"}
+          overlay={dressUpActive ? <OutfitSelector variant="overlay" /> : null}
+        />
       </section>
+
       <aside className="space-y-5">
         <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
           <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Exhibit tools</p>
@@ -81,7 +138,7 @@ export default function PandaPage() {
                   </span>
                   <span
                     aria-hidden="true"
-                    className={`grid size-9 place-items-center rounded-full text-lg font-black ${
+                    className={`grid size-9 place-items-center rounded-full text-sm font-black ${
                       selected ? "bg-white/20" : "bg-white/80 text-emerald-700"
                     }`}
                   >
@@ -93,30 +150,6 @@ export default function PandaPage() {
           </div>
         </section>
         {renderActiveTool()}
-        <PandaMoodDisplay />
-        <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-          <ProgressBar label={`Level ${pandaStats.level} XP`} value={pandaStats.xp} max={xpForNextLevel(pandaStats.level)} tone="pink" />
-          <div className="mt-4 grid grid-cols-2 gap-3 text-center">
-            <div className="rounded-2xl bg-emerald-50 p-3">
-              <p className="text-2xl font-black">{pandaStats.happiness}</p>
-              <p className="text-xs font-black text-zinc-500">Happiness</p>
-            </div>
-            <div className="rounded-2xl bg-amber-50 p-3">
-              <p className="text-2xl font-black">{pandaStats.energy}</p>
-              <p className="text-xs font-black text-zinc-500">Energy</p>
-            </div>
-          </div>
-        </section>
-        <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-          <h2 className="font-black text-zinc-950">Mood history</h2>
-          <div className="mt-3 space-y-2">
-            {(pandaStats.moodHistory || []).slice(0, 5).map((item, index) => (
-              <p className="rounded-2xl bg-zinc-50 p-3 text-sm font-semibold text-zinc-600" key={`${item.at}-${index}`}>
-                {item.mood}: {item.message}
-              </p>
-            ))}
-          </div>
-        </section>
       </aside>
     </main>
   );

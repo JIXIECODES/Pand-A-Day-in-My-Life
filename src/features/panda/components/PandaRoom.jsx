@@ -8,34 +8,51 @@ function hasDecoration(unlockedDecorations, id) {
   return unlockedDecorations.includes(id);
 }
 
-export default function PandaRoom() {
+export default function PandaRoom({ mode = "default", overlay = null }) {
   const { unlockedDecorations } = useAppContext();
   const seasonTheme = getSeasonTheme(getSeason());
   const unlocked = decorations.filter((item) => unlockedDecorations.includes(item.id));
   const starWallpaper = hasDecoration(unlockedDecorations, "star-wallpaper");
+  const dressUpMode = mode === "dress-up";
+  const roomClass = dressUpMode ? "from-emerald-100 via-lime-50 to-amber-100" : seasonTheme.room;
 
   return (
     <section className="rounded-[2rem] bg-white/70 p-5 shadow-xl shadow-zinc-200/60">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase text-zinc-500">{seasonTheme.name} room</p>
-          <h2 className="text-2xl font-black text-zinc-950">Panda habitat</h2>
+          <p className="text-xs font-black uppercase text-zinc-500">
+            {dressUpMode ? "Bamboo closet" : `${seasonTheme.name} room`}
+          </p>
+          <h2 className="text-2xl font-black text-zinc-950">
+            {dressUpMode ? "Panda dressing room" : "Panda habitat"}
+          </h2>
         </div>
-        <span className={`rounded-full px-3 py-1 text-sm font-black ${seasonTheme.accent}`}>{seasonTheme.name}</span>
+        <span className={`rounded-full px-3 py-1 text-sm font-black ${dressUpMode ? "bg-emerald-100 text-emerald-800" : seasonTheme.accent}`}>
+          {dressUpMode ? "Dress-Up" : seasonTheme.name}
+        </span>
       </div>
 
-      <div className={`relative min-h-[32rem] overflow-hidden rounded-[2rem] bg-gradient-to-b ${seasonTheme.room}`}>
-        <div className={`absolute inset-x-0 top-0 h-2/3 ${starWallpaper ? "bg-indigo-100" : "bg-white/20"}`}>
-          {starWallpaper && (
+      <div className={`relative min-h-[32rem] overflow-hidden rounded-[2rem] bg-gradient-to-b ${roomClass}`}>
+        <div className={`absolute inset-x-0 top-0 h-2/3 ${starWallpaper && !dressUpMode ? "bg-indigo-100" : "bg-white/20"}`}>
+          {starWallpaper && !dressUpMode && (
             <>
               <span className="absolute left-12 top-10 text-2xl">⭐</span>
               <span className="absolute right-20 top-16 text-xl">✨</span>
               <span className="absolute left-1/2 top-8 text-lg">⭐</span>
             </>
           )}
+          {dressUpMode && (
+            <>
+              <div className="absolute left-8 top-0 h-full w-8 rounded-b-full bg-emerald-300/50" />
+              <div className="absolute left-24 top-0 h-full w-6 rounded-b-full bg-lime-300/50" />
+              <div className="absolute right-24 top-0 h-full w-7 rounded-b-full bg-emerald-400/40" />
+              <div className="absolute right-10 top-0 h-full w-5 rounded-b-full bg-lime-400/40" />
+              <div className="absolute left-1/2 top-10 h-12 w-52 -translate-x-1/2 rounded-full bg-amber-200/80 shadow-inner" />
+            </>
+          )}
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-amber-100/80" />
-        <div className="absolute inset-x-0 bottom-36 h-3 bg-amber-200/80" />
+        <div className={`absolute inset-x-0 bottom-0 h-40 ${dressUpMode ? "bg-emerald-100/80" : "bg-amber-100/80"}`} />
+        <div className={`absolute inset-x-0 bottom-36 h-3 ${dressUpMode ? "bg-emerald-300/70" : "bg-amber-200/80"}`} />
 
         <div className="absolute left-8 top-10 h-28 w-32 rounded-3xl border-8 border-white bg-sky-100 shadow-md">
           <div className="grid h-full place-items-center text-4xl">
@@ -43,7 +60,7 @@ export default function PandaRoom() {
           </div>
         </div>
 
-        <div className="absolute right-8 top-20 h-44 w-24 rounded-t-2xl bg-amber-700 p-2 shadow-lg">
+        <div className={`absolute right-8 top-20 h-44 w-24 rounded-t-2xl p-2 shadow-lg ${dressUpMode ? "bg-emerald-700" : "bg-amber-700"}`}>
           <div className="grid gap-2">
             {["bg-pink-200", "bg-emerald-200", "bg-sky-200", "bg-yellow-200"].map((color) => (
               <div className={`h-7 rounded ${color}`} key={color} />
@@ -79,24 +96,28 @@ export default function PandaRoom() {
           <div className="absolute left-1/2 bottom-12 h-16 w-56 -translate-x-1/2 rounded-[50%] bg-emerald-100/90 shadow-inner" />
         )}
 
-        <div className="absolute left-1/2 bottom-20 z-20 w-64 -translate-x-1/2">
+        <div className="absolute left-1/2 bottom-24 z-20 w-64 -translate-x-1/2 sm:bottom-20">
           <PandaCompanion compact />
         </div>
 
-        <div className="absolute bottom-4 right-4 rounded-2xl bg-white/75 p-3 shadow-sm">
-          <p className="text-xs font-black uppercase text-zinc-500">Unlocked decor</p>
-          <div className="mt-2 flex max-w-52 flex-wrap gap-2">
-            {unlocked.length > 0 ? (
-              unlocked.map((item) => (
-                <span className="rounded-full bg-white px-3 py-1 text-sm font-black text-zinc-700" key={item.id}>
-                  {item.name}
-                </span>
-              ))
-            ) : (
-              <span className="text-sm font-semibold text-zinc-500">Complete goals to decorate.</span>
-            )}
+        {overlay && <div className="absolute inset-x-4 bottom-4 z-30">{overlay}</div>}
+
+        {!overlay && (
+          <div className="absolute bottom-4 right-4 rounded-2xl bg-white/75 p-3 shadow-sm">
+            <p className="text-xs font-black uppercase text-zinc-500">Unlocked decor</p>
+            <div className="mt-2 flex max-w-52 flex-wrap gap-2">
+              {unlocked.length > 0 ? (
+                unlocked.map((item) => (
+                  <span className="rounded-full bg-white px-3 py-1 text-sm font-black text-zinc-700" key={item.id}>
+                    {item.name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm font-semibold text-zinc-500">Complete goals to decorate.</span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

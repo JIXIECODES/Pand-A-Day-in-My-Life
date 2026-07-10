@@ -6,19 +6,28 @@ export default function OutfitSelector({ variant = "default" }) {
   const { equipOutfit, equippedOutfit, unlockedOutfits } = useAppContext();
   const noOutfitSelected = equippedOutfit === NO_OUTFIT_ID;
   const closet = variant === "closet";
+  const overlay = variant === "overlay";
   const sectionClass = closet
     ? "rounded-[2rem] border border-emerald-100 bg-gradient-to-b from-amber-50 via-lime-50 to-emerald-50 p-5 shadow-xl shadow-emerald-100/60"
+    : overlay
+      ? "rounded-[1.5rem] border border-emerald-100 bg-white/90 p-3 shadow-2xl shadow-emerald-950/10 backdrop-blur"
     : "rounded-[2rem] bg-white/80 p-5 shadow-sm";
-  const gridClass = closet ? "mt-4 grid gap-3" : "mt-4 grid gap-3 sm:grid-cols-2";
+  const gridClass = overlay
+    ? "mt-3 flex gap-3 overflow-x-auto pb-1"
+    : closet
+      ? "mt-4 grid gap-3"
+      : "mt-4 grid gap-3 sm:grid-cols-2";
+  const itemClass = overlay ? "min-w-36 shrink-0" : "";
+  const iconClass = overlay ? "text-2xl" : "text-3xl";
 
   return (
     <section className={sectionClass}>
       <div>
         <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
-          {closet ? "Bamboo closet" : "Panda closet"}
+          {closet || overlay ? "Bamboo closet" : "Panda closet"}
         </p>
-        <h2 className="text-xl font-black text-zinc-950">Outfits</h2>
-        {closet && (
+        <h2 className={overlay ? "text-base font-black text-zinc-950" : "text-xl font-black text-zinc-950"}>Outfits</h2>
+        {(closet || overlay) && (
           <p className="mt-1 text-sm font-semibold text-zinc-600">
             Pick an unlocked look, or leave your panda cozy with no outfit.
           </p>
@@ -28,6 +37,7 @@ export default function OutfitSelector({ variant = "default" }) {
         <button
           aria-pressed={noOutfitSelected}
           className={[
+            itemClass,
             "rounded-2xl border p-4 text-left transition hover:-translate-y-0.5",
             noOutfitSelected ? "border-zinc-950 bg-zinc-950 text-white" : "border-white bg-zinc-50",
           ].join(" ")}
@@ -46,6 +56,7 @@ export default function OutfitSelector({ variant = "default" }) {
             <button
               aria-pressed={equippedOutfit === outfit.id}
               className={[
+                itemClass,
                 "rounded-2xl border p-4 text-left transition",
                 equippedOutfit === outfit.id ? "border-zinc-950 bg-zinc-950 text-white" : "border-white bg-zinc-50",
                 !unlocked ? "opacity-60" : "hover:-translate-y-0.5",
@@ -55,7 +66,7 @@ export default function OutfitSelector({ variant = "default" }) {
               onClick={() => equipOutfit(outfit.id)}
               type="button"
             >
-              <span className="text-3xl">{outfit.icon}</span>
+              <span className={iconClass}>{outfit.icon}</span>
               <span className="mt-2 block font-black">{outfit.name}</span>
               <span className="mt-1 block text-xs font-bold opacity-70">{unlocked ? "Unlocked" : outfit.condition}</span>
             </button>
