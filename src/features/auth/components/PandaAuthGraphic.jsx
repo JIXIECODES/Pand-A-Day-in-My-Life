@@ -3,7 +3,7 @@ import authPanda from "../../../assets/auth/auth-panda.svg";
 export default function PandaAuthGraphic() {
   return (
     <div
-      className="mx-auto flex h-80 w-full max-w-[420px] items-center justify-center"
+      className="mx-auto flex h-96 w-96 items-center justify-center"
       role="img"
       aria-label="Panda holding bamboo"
     >
@@ -15,4 +15,3 @@ export default function PandaAuthGraphic() {
     </div>
   );
 }
-
