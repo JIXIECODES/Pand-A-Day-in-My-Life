@@ -2,14 +2,29 @@ import React from "react";
 import { NO_OUTFIT_ID, outfits } from "../../../data/outfits.js";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 
-export default function OutfitSelector() {
+export default function OutfitSelector({ variant = "default" }) {
   const { equipOutfit, equippedOutfit, unlockedOutfits } = useAppContext();
   const noOutfitSelected = equippedOutfit === NO_OUTFIT_ID;
+  const closet = variant === "closet";
+  const sectionClass = closet
+    ? "rounded-[2rem] border border-emerald-100 bg-gradient-to-b from-amber-50 via-lime-50 to-emerald-50 p-5 shadow-xl shadow-emerald-100/60"
+    : "rounded-[2rem] bg-white/80 p-5 shadow-sm";
+  const gridClass = closet ? "mt-4 grid gap-3" : "mt-4 grid gap-3 sm:grid-cols-2";
 
   return (
-    <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-      <h2 className="text-xl font-black text-zinc-950">Outfits</h2>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+    <section className={sectionClass}>
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
+          {closet ? "Bamboo closet" : "Panda closet"}
+        </p>
+        <h2 className="text-xl font-black text-zinc-950">Outfits</h2>
+        {closet && (
+          <p className="mt-1 text-sm font-semibold text-zinc-600">
+            Pick an unlocked look, or leave your panda cozy with no outfit.
+          </p>
+        )}
+      </div>
+      <div className={gridClass}>
         <button
           aria-pressed={noOutfitSelected}
           className={[
