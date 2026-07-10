@@ -10,14 +10,14 @@ export default function OutfitSelector({ variant = "default" }) {
   const sectionClass = closet
     ? "rounded-[2rem] border border-emerald-100 bg-gradient-to-b from-amber-50 via-lime-50 to-emerald-50 p-5 shadow-xl shadow-emerald-100/60"
     : overlay
-      ? "rounded-[1.5rem] border border-emerald-100 bg-white/90 p-3 shadow-2xl shadow-emerald-950/10 backdrop-blur"
+      ? "max-h-44 overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-white/90 p-3 shadow-2xl shadow-emerald-950/10 backdrop-blur"
     : "rounded-[2rem] bg-white/80 p-5 shadow-sm";
   const gridClass = overlay
-    ? "mt-3 flex gap-3 overflow-x-auto pb-1"
+    ? "mt-3 flex gap-3 overflow-x-auto overflow-y-hidden pb-1"
     : closet
       ? "mt-4 grid gap-3"
       : "mt-4 grid gap-3 sm:grid-cols-2";
-  const itemClass = overlay ? "min-w-36 shrink-0" : "";
+  const itemClass = overlay ? "min-w-36 shrink-0 p-3" : "p-4";
   const iconClass = overlay ? "text-2xl" : "text-3xl";
 
   return (
@@ -38,7 +38,7 @@ export default function OutfitSelector({ variant = "default" }) {
           aria-pressed={noOutfitSelected}
           className={[
             itemClass,
-            "rounded-2xl border p-4 text-left transition hover:-translate-y-0.5",
+            "rounded-2xl border text-left transition hover:-translate-y-0.5",
             noOutfitSelected ? "border-zinc-950 bg-zinc-950 text-white" : "border-white bg-zinc-50",
           ].join(" ")}
           onClick={() => equipOutfit(NO_OUTFIT_ID)}
@@ -57,7 +57,7 @@ export default function OutfitSelector({ variant = "default" }) {
               aria-pressed={equippedOutfit === outfit.id}
               className={[
                 itemClass,
-                "rounded-2xl border p-4 text-left transition",
+                "rounded-2xl border text-left transition",
                 equippedOutfit === outfit.id ? "border-zinc-950 bg-zinc-950 text-white" : "border-white bg-zinc-50",
                 !unlocked ? "opacity-60" : "hover:-translate-y-0.5",
               ].join(" ")}

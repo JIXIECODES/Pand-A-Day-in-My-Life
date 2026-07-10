@@ -58,9 +58,9 @@ export default function PandaPage() {
   }
 
   return (
-    <main className="mx-auto grid max-w-7xl items-start gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <section className="min-w-0 space-y-5">
-        <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
+    <main className="mx-auto grid max-w-7xl items-start gap-6 px-4 py-6 sm:px-6 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)] lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-stretch lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <section className="min-w-0 space-y-5 lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)] lg:space-y-0 lg:overflow-hidden">
+        <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm lg:mb-4">
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)]">
             <PandaMoodDisplay />
             <div className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
@@ -90,7 +90,7 @@ export default function PandaPage() {
               </span>
             </button>
             {moodHistoryOpen && (
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:max-h-32 lg:overflow-y-auto lg:pr-1">
                 {recentMoods.length > 0 ? (
                   recentMoods.map((item, index) => (
                     <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-600 shadow-sm" key={`${item.at}-${index}`}>
@@ -111,8 +111,8 @@ export default function PandaPage() {
         />
       </section>
 
-      <aside className="w-full space-y-5 lg:sticky lg:top-6 lg:max-w-[22rem]">
-        <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
+      <aside className="w-full space-y-5 lg:flex lg:h-full lg:min-h-0 lg:max-w-[22rem] lg:flex-col lg:overflow-hidden">
+        <section className="shrink-0 rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
           <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Exhibit tools</p>
           <div className="mt-3 grid gap-3">
             {exhibitTools.map((tool) => {
@@ -149,7 +149,7 @@ export default function PandaPage() {
             })}
           </div>
         </section>
-        {renderActiveTool()}
+        <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">{renderActiveTool()}</div>
       </aside>
     </main>
   );

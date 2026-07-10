@@ -6,13 +6,13 @@ export default function DecorationShelf({ variant = "default" }) {
   const { unlockedDecorations } = useAppContext();
   const panel = variant === "panel";
   const sectionClass = panel
-    ? "rounded-[2rem] border border-emerald-100 bg-gradient-to-b from-white via-emerald-50 to-amber-50 p-5 shadow-xl shadow-emerald-100/60"
+    ? "flex min-h-0 flex-col rounded-[2rem] border border-emerald-100 bg-gradient-to-b from-white via-emerald-50 to-amber-50 p-5 shadow-xl shadow-emerald-100/60 lg:h-full"
     : "rounded-[2rem] bg-white/80 p-5 shadow-sm";
-  const gridClass = panel ? "mt-4 grid gap-3" : "mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3";
+  const gridClass = panel ? "mt-4 grid min-h-0 gap-3 lg:overflow-y-auto lg:pr-1" : "mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
     <section className={sectionClass}>
-      <div>
+      <div className={panel ? "shrink-0" : ""}>
         <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
           {panel ? "Decorate" : "Habitat decor"}
         </p>

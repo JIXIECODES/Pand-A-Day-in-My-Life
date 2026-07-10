@@ -17,8 +17,8 @@ export default function PandaRoom({ mode = "default", overlay = null }) {
   const roomClass = dressUpMode ? "from-emerald-100 via-lime-50 to-amber-100" : seasonTheme.room;
 
   return (
-    <section className="rounded-[2rem] bg-white/70 p-5 shadow-xl shadow-zinc-200/60">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <section className="flex min-h-0 flex-col rounded-[2rem] bg-white/70 p-5 shadow-xl shadow-zinc-200/60 lg:h-full lg:overflow-hidden">
+      <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase text-zinc-500">
             {dressUpMode ? "Bamboo closet" : `${seasonTheme.name} room`}
@@ -32,7 +32,7 @@ export default function PandaRoom({ mode = "default", overlay = null }) {
         </span>
       </div>
 
-      <div className={`relative min-h-[32rem] overflow-hidden rounded-[2rem] bg-gradient-to-b ${roomClass}`}>
+      <div className={`relative min-h-[28rem] overflow-hidden rounded-[2rem] bg-gradient-to-b lg:min-h-0 lg:flex-1 ${roomClass}`}>
         <div className={`absolute inset-x-0 top-0 h-2/3 ${starWallpaper && !dressUpMode ? "bg-indigo-100" : "bg-white/20"}`}>
           {starWallpaper && !dressUpMode && (
             <>
