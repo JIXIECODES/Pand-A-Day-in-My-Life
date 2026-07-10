@@ -12,6 +12,10 @@ body {
   margin: 0;
 }
 
+body.navigation-drawer-open {
+  overflow: hidden;
+}
+
 button,
 input,
 textarea,

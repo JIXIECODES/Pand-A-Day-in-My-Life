@@ -1,21 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAppContext } from "../../app/AppProvider.jsx";
-
-const links = [
-  { id: "home", label: "\u{1F3E0} Home" },
-  { id: "calendar", label: "\u{1F5D3}\uFE0F Planning" },
-  { id: "panda", label: "\u{1F43C} Panda" },
-  { id: "journal", label: "\u{1F4D6} Journal" },
-  { id: "rewards", label: "\u{1F381} Rewards" },
-  { id: "settings", label: "\u2699\uFE0F Settings" },
-];
+import NavigationDrawer from "./NavigationDrawer.jsx";
 
 export default function Navbar() {
   const { activePage, setActivePage } = useAppContext();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/70 bg-white/75 backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
+        <button
+          aria-controls="main-navigation-drawer"
+          aria-expanded={drawerOpen}
+          aria-label="Open navigation menu"
+          className="grid size-11 shrink-0 place-items-center rounded-full border border-zinc-200 bg-white text-xl font-black text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+          onClick={() => setDrawerOpen(true)}
+          type="button"
+        >
+          <span aria-hidden="true" className="grid gap-1">
+            <span className="block h-0.5 w-5 rounded-full bg-current" />
+            <span className="block h-0.5 w-5 rounded-full bg-current" />
+            <span className="block h-0.5 w-5 rounded-full bg-current" />
+          </span>
+        </button>
+
         <button className="flex items-center gap-3 text-left" onClick={() => setActivePage("home")} type="button">
           <span className="relative grid size-12 place-items-center rounded-full border border-zinc-200 bg-white text-3xl shadow-sm" aria-hidden="true">
             <span className="absolute inset-0 grid place-items-center font-['Apple_Color_Emoji','Segoe_UI_Emoji','Noto_Color_Emoji',sans-serif]">
@@ -40,24 +48,13 @@ export default function Navbar() {
           </span>
         </button>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 lg:pb-0">
-          {links.map((link) => (
-            <button
-              className={[
-                "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition",
-                activePage === link.id
-                  ? "bg-zinc-950 text-white shadow-md shadow-zinc-300"
-                  : "bg-white/80 text-zinc-600 hover:bg-white",
-              ].join(" ")}
-              key={link.id}
-              onClick={() => setActivePage(link.id)}
-              type="button"
-            >
-              {link.label}
-            </button>
-          ))}
-        </div>
-      </nav>
+        <NavigationDrawer
+          activePage={activePage}
+          onClose={() => setDrawerOpen(false)}
+          onNavigate={setActivePage}
+          open={drawerOpen}
+        />
+      </div>
     </header>
   );
 }
