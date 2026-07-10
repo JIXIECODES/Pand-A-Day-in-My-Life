@@ -58,8 +58,8 @@ export default function PandaPage() {
   }
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <section className="space-y-5">
+    <main className="mx-auto grid max-w-7xl items-start gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <section className="min-w-0 space-y-5">
         <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)]">
             <PandaMoodDisplay />
@@ -111,7 +111,7 @@ export default function PandaPage() {
         />
       </section>
 
-      <aside className="space-y-5">
+      <aside className="w-full space-y-5 lg:sticky lg:top-6 lg:max-w-[22rem]">
         <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
           <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Exhibit tools</p>
           <div className="mt-3 grid gap-3">
