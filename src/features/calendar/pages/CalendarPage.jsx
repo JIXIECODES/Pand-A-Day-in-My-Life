@@ -15,7 +15,7 @@ const planningContext = {
     eyebrow: "Calendar time blocks",
     title: "Click a date, then schedule a focused block.",
     description:
-      "Calendar blocks are for goals with an exact day, start time, and end time. They stay separate from Daily and Long-Term goals.",
+      "Calendar blocks are scheduled goals with an exact date, start time, and end time. They stay separate from Daily and Long-Term goals.",
     accent: "bg-sky-50 text-sky-800",
     stat: "Time-based",
   },
@@ -23,7 +23,7 @@ const planningContext = {
     eyebrow: "Planning guide",
     title: "Pick the workflow that matches your goal.",
     description:
-      "Use the guide when you are not sure whether something belongs as a quick daily goal, a longer growth goal, or a calendar block.",
+      "Choose daily goals for quick tasks you want to finish soon, long-term goals for bigger progress that grows over time, or calendar blocks when you need an exact date and time.",
     accent: "bg-pink-50 text-pink-800",
     stat: "Start here",
   },
@@ -31,7 +31,7 @@ const planningContext = {
     eyebrow: "Daily goals",
     title: "Capture the goals you want to finish soon.",
     description:
-      "Daily goals are simple, flexible tasks that do not need a scheduled time. They are great for homework, practice, chores, or small wins.",
+      "Daily goals are quick goals and tasks you want to finish soon, like homework, practice, chores, or small wins.",
     accent: "bg-emerald-50 text-emerald-800",
     stat: "Quick wins",
   },
@@ -39,7 +39,7 @@ const planningContext = {
     eyebrow: "Long-term goals",
     title: "Track bigger goals that grow over time.",
     description:
-      "Long-Term goals are for projects and habits that need steady progress, like building skills, reading more, or finishing a portfolio.",
+      "Long-term goals are bigger progress goals that grow over time, like building skills, reading more, or finishing a portfolio.",
     accent: "bg-amber-50 text-amber-800",
     stat: "Growth path",
   },
@@ -74,58 +74,74 @@ function GoalTypeInfoCard() {
   );
 }
 
-function CalendarIntroModal({ onClose, open }) {
+const CALENDAR_HELP_STORAGE_KEY = "panda-day-hide-calendar-help";
+
+function CalendarHelpPopover({ onClose, onDisable, open }) {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-white/35 p-4 backdrop-blur-md"
-      onClick={onClose}
-      role="presentation"
+    <section
+      aria-labelledby="calendar-help-title"
+      aria-live="polite"
+      className="animate-modal-in pointer-events-auto absolute left-1/2 top-2 z-20 max-w-[min(calc(100%-1rem),20rem)] -translate-x-1/2 rounded-[1.75rem] border border-sky-100 bg-white/95 p-4 shadow-2xl shadow-sky-100/80 sm:left-auto sm:right-6 sm:max-w-md sm:translate-x-0"
+      role="dialog"
     >
-      <section
-        aria-modal="true"
-        className="animate-modal-in w-full max-w-xl rounded-[2rem] border border-white/80 bg-white/95 p-5 shadow-2xl shadow-zinc-200/70"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-      >
-        <div className="grid gap-5 sm:grid-cols-[1fr_11rem] sm:items-center">
+      <div className="absolute -bottom-3 left-1/2 size-6 -translate-x-1/2 rotate-45 border-b border-r border-sky-100 bg-white/95 sm:left-12 sm:translate-x-0" />
+      <div className="relative">
+        <div className="flex items-start gap-3">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl border-4 border-sky-200 bg-sky-50 shadow-inner">
+            <span className="text-xl font-black text-sky-800">15</span>
+          </div>
           <div>
-            <p className="text-xs font-black uppercase text-pink-500">Calendar blocks</p>
-            <h2 className="mt-1 text-2xl font-black text-zinc-950">Choose a date to plan your time.</h2>
-            <p className="mt-2 text-sm font-semibold text-zinc-500">
-              Click any calendar date to open the daily planner. From there, add a goal with a start time, end time,
-              category, and difficulty.
+            <p className="text-xs font-black uppercase text-pink-500">Calendar date says</p>
+            <h2 className="mt-1 text-lg font-black text-zinc-950" id="calendar-help-title">
+              Tap a date to make a time block.
+            </h2>
+            <p className="mt-1 text-sm font-semibold text-zinc-500">
+              Calendar blocks are scheduled goals with an exact date, start time, and end time.
             </p>
           </div>
-          <div className="rounded-[1.5rem] bg-sky-50 p-3 text-center shadow-inner">
-            <p className="text-xs font-black uppercase text-sky-600">Tap here</p>
-            <div className="mx-auto mt-2 grid size-24 place-items-center rounded-2xl border-4 border-sky-300 bg-white shadow-lg shadow-sky-100">
-              <span className="text-3xl font-black text-zinc-950">15</span>
-            </div>
-            <p className="mt-2 text-xs font-black text-sky-700">Then add a block</p>
-          </div>
         </div>
-        <div className="mt-5 rounded-3xl bg-amber-50 p-4 text-sm font-bold text-amber-900">
-          Time blocks appear inside the date and on that day&apos;s schedule, so your panda can see when each goal belongs.
+        <p className="mt-3 rounded-2xl bg-amber-50 p-3 text-sm font-bold text-amber-900">
+          Click a day in the calendar grid, then add the goal details in the daily planner.
+        </p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <button className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-black text-white" onClick={onClose} type="button">
+            Understand
+          </button>
+          <button className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-black text-zinc-700" onClick={onDisable} type="button">
+            Don&apos;t remind me
+          </button>
         </div>
-        <button className="mt-5 w-full rounded-full bg-zinc-950 px-5 py-3 font-black text-white" onClick={onClose} type="button">
-          Understand
-        </button>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 
 export default function CalendarPage() {
   const [activeTab, setActiveTab] = useState("guide");
   const [plannerOpen, setPlannerOpen] = useState(false);
-  const [calendarIntroOpen, setCalendarIntroOpen] = useState(false);
+  const [calendarHelpOpen, setCalendarHelpOpen] = useState(false);
+  const [hideCalendarHelp, setHideCalendarHelp] = useState(
+    () => localStorage.getItem(CALENDAR_HELP_STORAGE_KEY) === "true",
+  );
   const activeContext = planningContext[activeTab] || planningContext.guide;
 
   function selectTab(tabId) {
     setActiveTab(tabId);
-    if (tabId === "calendar") setCalendarIntroOpen(true);
+    if (tabId === "calendar" && !hideCalendarHelp) {
+      setCalendarHelpOpen(true);
+    }
+  }
+
+  function closeCalendarHelp() {
+    setCalendarHelpOpen(false);
+  }
+
+  function disableCalendarHelp() {
+    localStorage.setItem(CALENDAR_HELP_STORAGE_KEY, "true");
+    setHideCalendarHelp(true);
+    setCalendarHelpOpen(false);
   }
 
   return (
@@ -176,17 +192,19 @@ export default function CalendarPage() {
 
       {activeTab === "calendar" && (
         <>
-          <Calendar onOpenDay={() => setPlannerOpen(true)} />
-          <section className="rounded-[2rem] bg-white/70 p-5 shadow-sm">
-            <p className="text-xs font-black uppercase text-pink-500">Calendar time blocks</p>
-            <h2 className="mt-1 text-xl font-black text-zinc-950">
-              Click a date to schedule goals with exact start and end times.
-            </h2>
-          </section>
+          <Calendar
+            calendarHelp={
+              <CalendarHelpPopover
+                onClose={closeCalendarHelp}
+                onDisable={disableCalendarHelp}
+                open={calendarHelpOpen}
+              />
+            }
+            onOpenDay={() => setPlannerOpen(true)}
+          />
           <DayPlannerModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
         </>
       )}
-      <CalendarIntroModal open={calendarIntroOpen} onClose={() => setCalendarIntroOpen(false)} />
     </main>
   );
 }

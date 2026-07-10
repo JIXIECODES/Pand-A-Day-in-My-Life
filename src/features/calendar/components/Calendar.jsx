@@ -4,7 +4,7 @@ import { useAppContext } from "../../../app/AppProvider.jsx";
 import { getMonthDays, weekdayLabels } from "../utils/dateUtils.js";
 import DayCell from "./DayCell.jsx";
 
-export default function Calendar({ onOpenDay }) {
+export default function Calendar({ calendarHelp, onOpenDay }) {
   const { currentMonth, goalsByDate, scheduledGoals, setCurrentMonth, setSelectedDate } = useAppContext();
   const days = getMonthDays(currentMonth);
 
@@ -38,20 +38,23 @@ export default function Calendar({ onOpenDay }) {
           <div key={label}>{label}</div>
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-7">
-        {days.map((day) => {
-          const key = day.format("YYYY-MM-DD");
-          return (
-            <DayCell
-              day={day}
-              goals={goalsByDate[key] || []}
-              isCurrentMonth={day.isSame(currentMonth, "month")}
-              key={key}
-              onSelect={openDay}
-              scheduledGoals={scheduledGoals.filter((goal) => goal.date === key)}
-            />
-          );
-        })}
+      <div className="relative mt-2">
+        {calendarHelp}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
+          {days.map((day) => {
+            const key = day.format("YYYY-MM-DD");
+            return (
+              <DayCell
+                day={day}
+                goals={goalsByDate[key] || []}
+                isCurrentMonth={day.isSame(currentMonth, "month")}
+                key={key}
+                onSelect={openDay}
+                scheduledGoals={scheduledGoals.filter((goal) => goal.date === key)}
+              />
+            );
+          })}
+        </div>
       </div>
     </section>
   );
