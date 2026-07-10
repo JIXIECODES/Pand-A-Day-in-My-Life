@@ -33,7 +33,7 @@ export default function PandaRoom({ mode = "default", overlay = null, statusOver
       </div>
 
       <div className={`relative min-h-[34rem] overflow-hidden rounded-[2rem] bg-gradient-to-b lg:min-h-[38rem] xl:min-h-[42rem] ${roomClass}`}>
-        {statusOverlay && <div className="absolute left-4 top-4 z-40 w-[min(15rem,calc(100%-2rem))] space-y-2 sm:left-5 sm:top-5">{statusOverlay}</div>}
+        {statusOverlay && <div className="absolute left-4 top-4 z-40 w-[min(13rem,calc(100%-2rem))] space-y-2 sm:left-5 sm:top-5">{statusOverlay}</div>}
 
         <div className={`absolute inset-x-0 top-0 h-2/3 ${starWallpaper && !dressUpMode ? "bg-indigo-100" : "bg-white/20"}`}>
           {starWallpaper && !dressUpMode && (

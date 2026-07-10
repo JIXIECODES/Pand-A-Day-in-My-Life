@@ -67,13 +67,13 @@ export default function PandaPage() {
           statusOverlay={
             <>
               <PandaMoodDisplay variant="bubble" />
-              <section className="rounded-3xl border border-white/80 bg-white/90 p-3 shadow-xl shadow-emerald-950/10 backdrop-blur">
+              <section className="rounded-3xl border border-white/80 bg-white/90 px-3 py-2.5 shadow-xl shadow-emerald-950/10 backdrop-blur">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-emerald-700">Level</p>
+                    <p className="text-[0.6rem] font-black uppercase tracking-[0.12em] text-emerald-700">Level</p>
                     <h3 className="text-sm font-black text-zinc-950">Level {pandaStats.level}</h3>
                   </div>
-                  <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-black text-pink-600">
+                  <span className="rounded-full bg-pink-100 px-2.5 py-1 text-[0.65rem] font-black text-pink-600">
                     {pandaStats.xp}/{nextLevelXp}
                   </span>
                 </div>
