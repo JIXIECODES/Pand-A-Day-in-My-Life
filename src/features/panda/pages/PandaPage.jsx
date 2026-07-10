@@ -3,7 +3,6 @@ import DecorationShelf from "../components/DecorationShelf.jsx";
 import OutfitSelector from "../components/OutfitSelector.jsx";
 import PandaMoodDisplay from "../components/PandaMoodDisplay.jsx";
 import PandaRoom from "../components/PandaRoom.jsx";
-import ProgressBar from "../../rewards/components/ProgressBar.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { xpForNextLevel } from "../utils/pandaLogic.js";
 
@@ -31,6 +30,8 @@ export default function PandaPage() {
   const [moodHistoryOpen, setMoodHistoryOpen] = useState(false);
   const dressUpActive = activeTool === "dress-up";
   const recentMoods = (pandaStats.moodHistory || []).slice(0, 5);
+  const nextLevelXp = xpForNextLevel(pandaStats.level);
+  const xpPercent = Math.min(100, Math.round((pandaStats.xp / nextLevelXp) * 100));
 
   function renderActiveTool() {
     if (dressUpActive) {
@@ -58,60 +59,61 @@ export default function PandaPage() {
   }
 
   return (
-    <main className="mx-auto grid max-w-7xl items-start gap-6 px-4 py-6 sm:px-6 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)] lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-stretch lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <section className="min-w-0 space-y-5 lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)] lg:space-y-0 lg:overflow-hidden">
-        <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm lg:mb-4">
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)]">
-            <PandaMoodDisplay />
-            <div className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
-              <ProgressBar label={`Level ${pandaStats.level} XP`} value={pandaStats.xp} max={xpForNextLevel(pandaStats.level)} tone="pink" />
-              <div className="mt-3 grid grid-cols-2 gap-3 text-center">
-                <div className="rounded-2xl bg-emerald-50 p-3">
-                  <p className="text-xl font-black">{pandaStats.happiness}</p>
-                  <p className="text-xs font-black text-zinc-500">Happiness</p>
-                </div>
-                <div className="rounded-2xl bg-amber-50 p-3">
-                  <p className="text-xl font-black">{pandaStats.energy}</p>
-                  <p className="text-xs font-black text-zinc-500">Energy</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-3 rounded-[1.5rem] bg-emerald-50/70 p-3">
-            <button
-              aria-expanded={moodHistoryOpen}
-              className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-zinc-800 shadow-sm transition hover:-translate-y-0.5"
-              onClick={() => setMoodHistoryOpen((open) => !open)}
-              type="button"
-            >
-              <span>View Mood History</span>
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-800">
-                {moodHistoryOpen ? "Hide" : `${recentMoods.length} recent`}
-              </span>
-            </button>
-            {moodHistoryOpen && (
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:max-h-32 lg:overflow-y-auto lg:pr-1">
-                {recentMoods.length > 0 ? (
-                  recentMoods.map((item, index) => (
-                    <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-600 shadow-sm" key={`${item.at}-${index}`}>
-                      <span className="font-black text-zinc-950">{item.mood}:</span> {item.message}
-                    </p>
-                  ))
-                ) : (
-                  <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-500 shadow-sm">No mood history yet.</p>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
-
+    <main className="mx-auto grid max-w-7xl items-start gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <section className="min-w-0 space-y-4">
         <PandaRoom
           mode={dressUpActive ? "dress-up" : "default"}
           overlay={dressUpActive ? <OutfitSelector variant="overlay" /> : null}
+          statusOverlay={
+            <>
+              <PandaMoodDisplay variant="bubble" />
+              <section className="rounded-3xl border border-white/80 bg-white/90 p-3 shadow-xl shadow-emerald-950/10 backdrop-blur">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-emerald-700">Level</p>
+                    <h3 className="text-sm font-black text-zinc-950">Level {pandaStats.level}</h3>
+                  </div>
+                  <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-black text-pink-600">
+                    {pandaStats.xp}/{nextLevelXp}
+                  </span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100">
+                  <div className="h-full rounded-full bg-gradient-to-r from-pink-400 to-emerald-500" style={{ width: `${xpPercent}%` }} />
+                </div>
+              </section>
+            </>
+          }
         />
+
+        <section className="rounded-[2rem] border border-emerald-100 bg-white/85 p-3 shadow-sm">
+          <button
+            aria-expanded={moodHistoryOpen}
+            className="flex w-full items-center justify-between rounded-2xl bg-emerald-50/80 px-4 py-3 text-left text-sm font-black text-zinc-800 shadow-sm transition hover:-translate-y-0.5"
+            onClick={() => setMoodHistoryOpen((open) => !open)}
+            type="button"
+          >
+            <span>View Mood History</span>
+            <span className="rounded-full bg-white px-3 py-1 text-xs text-emerald-800">
+              {moodHistoryOpen ? "Hide" : `${recentMoods.length} recent`}
+            </span>
+          </button>
+          {moodHistoryOpen && (
+            <div className="mt-3 grid max-h-40 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+              {recentMoods.length > 0 ? (
+                recentMoods.map((item, index) => (
+                  <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-600 shadow-sm" key={`${item.at}-${index}`}>
+                    <span className="font-black text-zinc-950">{item.mood}:</span> {item.message}
+                  </p>
+                ))
+              ) : (
+                <p className="rounded-2xl bg-white p-3 text-sm font-semibold text-zinc-500 shadow-sm">No mood history yet.</p>
+              )}
+            </div>
+          )}
+        </section>
       </section>
 
-      <aside className="w-full space-y-5 lg:flex lg:h-full lg:min-h-0 lg:max-w-[22rem] lg:flex-col lg:overflow-hidden">
+      <aside className="w-full space-y-5 lg:sticky lg:top-24 lg:max-w-[22rem]">
         <section className="shrink-0 rounded-[2rem] border border-emerald-100 bg-white/85 p-4 shadow-sm">
           <p className="px-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Exhibit tools</p>
           <div className="mt-3 grid gap-3">
@@ -149,7 +151,7 @@ export default function PandaPage() {
             })}
           </div>
         </section>
-        <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">{renderActiveTool()}</div>
+        <div className="lg:max-h-[calc(100vh-26rem)] lg:overflow-y-auto lg:pr-1">{renderActiveTool()}</div>
       </aside>
     </main>
   );
