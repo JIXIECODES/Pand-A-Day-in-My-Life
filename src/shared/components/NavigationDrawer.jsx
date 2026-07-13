@@ -11,11 +11,26 @@ export default function NavigationDrawer({ activePage, onClose, onNavigate, open
       }
     }
 
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyPosition = document.body.style.position;
+    const previousBodyTop = document.body.style.top;
+    const previousBodyWidth = document.body.style.width;
+    const scrollY = window.scrollY;
+
     document.body.classList.add("navigation-drawer-open");
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
     window.addEventListener("keydown", closeOnEscape);
 
     return () => {
       document.body.classList.remove("navigation-drawer-open");
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.position = previousBodyPosition;
+      document.body.style.top = previousBodyTop;
+      document.body.style.width = previousBodyWidth;
+      window.scrollTo(0, scrollY);
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [onClose, open]);
@@ -46,14 +61,14 @@ export default function NavigationDrawer({ activePage, onClose, onNavigate, open
         aria-hidden={!open}
         aria-modal="true"
         className={[
-          "fixed bottom-0 left-0 top-0 z-50 w-[min(86vw,19rem)] border-r border-white/80 bg-gradient-to-b from-white via-emerald-50 to-amber-50 shadow-2xl shadow-zinc-950/20 transition-transform duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-50 flex h-screen h-dvh w-[min(86vw,19rem)] flex-col overflow-hidden border-r border-white/80 bg-gradient-to-b from-white via-emerald-50 to-amber-50 shadow-2xl shadow-zinc-950/20 transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
         id="main-navigation-drawer"
         role="dialog"
       >
-        <div className="flex h-full flex-col">
-          <div className="flex items-start justify-between gap-3 border-b border-white/80 px-5 py-5">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="shrink-0 flex items-start justify-between gap-3 border-b border-white/80 px-5 py-5">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Menu</p>
               <h2 className="mt-1 text-2xl font-black text-zinc-950">Pand-A Day</h2>
@@ -69,7 +84,7 @@ export default function NavigationDrawer({ activePage, onClose, onNavigate, open
             </button>
           </div>
 
-          <nav aria-label="Primary pages" className="flex-1 overflow-y-auto px-4 py-5">
+          <nav aria-label="Primary pages" className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
             <div className="grid gap-2">
               {navigationLinks.map((link) => (
                 <button
@@ -91,7 +106,7 @@ export default function NavigationDrawer({ activePage, onClose, onNavigate, open
             </div>
           </nav>
 
-          <div className="border-t border-white/80 p-4">
+          <div className="shrink-0 border-t border-white/80 p-4">
             <p className="rounded-3xl bg-white/75 p-3 text-sm font-bold text-zinc-600 shadow-sm">
               A soft little shortcut shelf for every panda page.
             </p>
