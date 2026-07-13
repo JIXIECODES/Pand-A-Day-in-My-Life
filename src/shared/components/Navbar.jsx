@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useAppContext } from "../../app/AppProvider.jsx";
-import NavigationDrawer from "./NavigationDrawer.jsx";
 
-export default function Navbar() {
+export default function Navbar({ drawerOpen, onOpenDrawer }) {
   const { activePage, setActivePage } = useAppContext();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/70 bg-white/75 backdrop-blur-xl">
@@ -14,7 +12,7 @@ export default function Navbar() {
           aria-expanded={drawerOpen}
           aria-label="Open navigation menu"
           className="grid size-11 shrink-0 place-items-center rounded-full border border-zinc-200 bg-white text-xl font-black text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-          onClick={() => setDrawerOpen(true)}
+          onClick={onOpenDrawer}
           type="button"
         >
           <span aria-hidden="true" className="grid gap-1">
@@ -48,12 +46,6 @@ export default function Navbar() {
           </span>
         </button>
 
-        <NavigationDrawer
-          activePage={activePage}
-          onClose={() => setDrawerOpen(false)}
-          onNavigate={setActivePage}
-          open={drawerOpen}
-        />
       </div>
     </header>
   );

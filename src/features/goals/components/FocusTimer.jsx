@@ -14,6 +14,7 @@ export default function FocusTimer() {
   const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
+  const hasEnded = secondsLeft <= 0;
 
   useEffect(() => {
     setSecondsLeft(durationSeconds);
@@ -46,12 +47,14 @@ export default function FocusTimer() {
   );
 
   function start() {
+    if (hasEnded) return;
     setRunning(true);
     setMessage("");
     startFocus(timerGoal);
   }
 
   function pause() {
+    if (hasEnded) return;
     setRunning(false);
     setMessage("Paused. Resume when you are ready.");
   }
@@ -91,10 +94,20 @@ export default function FocusTimer() {
       </div>
 
       <div className="mt-6 grid grid-cols-3 gap-2">
-        <button className="rounded-full bg-emerald-300 px-4 py-3 text-sm font-black text-zinc-950" onClick={start} type="button">
+        <button
+          className="rounded-full bg-emerald-300 px-4 py-3 text-sm font-black text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={hasEnded}
+          onClick={start}
+          type="button"
+        >
           {secondsLeft === durationSeconds ? "Start" : "Resume"}
         </button>
-        <button className="rounded-full bg-white/10 px-4 py-3 text-sm font-black" onClick={pause} type="button">
+        <button
+          className="rounded-full bg-white/10 px-4 py-3 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={hasEnded}
+          onClick={pause}
+          type="button"
+        >
           Pause
         </button>
         <button className="rounded-full bg-white/10 px-4 py-3 text-sm font-black" onClick={reset} type="button">
