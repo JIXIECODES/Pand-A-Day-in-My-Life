@@ -105,12 +105,6 @@ export default function NavigationDrawer({ activePage, onClose, onNavigate, open
               ))}
             </div>
           </nav>
-
-          <div className="shrink-0 border-t border-white/80 p-4">
-            <p className="rounded-3xl bg-white/75 p-3 text-sm font-bold text-zinc-600 shadow-sm">
-              A soft little shortcut shelf for every panda page.
-            </p>
-          </div>
         </div>
       </aside>
     </>
