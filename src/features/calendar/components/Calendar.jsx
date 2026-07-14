@@ -14,11 +14,11 @@ export default function Calendar({ calendarHelp, className = "", onOpenDay }) {
   }
 
   return (
-    <section className={`flex min-h-0 flex-col rounded-[2rem] border border-white/80 bg-white/60 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-6 ${className}`}>
-      <div className="shrink-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className={`rounded-[2rem] border border-white/80 bg-white/60 p-3 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-4 ${className}`}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-black text-pink-500">Monthly care map</p>
-          <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">{currentMonth.format("MMMM YYYY")}</h1>
+          <h1 className="text-2xl font-black text-zinc-950 sm:text-3xl">{currentMonth.format("MMMM YYYY")}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button className="rounded-full bg-white px-4 py-2 font-black shadow-sm" onClick={() => setCurrentMonth(currentMonth.subtract(1, "month"))} type="button">
@@ -33,14 +33,14 @@ export default function Calendar({ calendarHelp, className = "", onOpenDay }) {
         </div>
       </div>
 
-      <div className="mt-6 grid shrink-0 grid-cols-7 gap-2 text-center text-xs font-black uppercase text-zinc-400">
+      <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-xs font-black uppercase text-zinc-400">
         {weekdayLabels().map((label) => (
           <div key={label}>{label}</div>
         ))}
       </div>
-      <div className="relative mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="relative mt-2">
         {calendarHelp}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-7">
           {days.map((day) => {
             const key = day.format("YYYY-MM-DD");
             return (

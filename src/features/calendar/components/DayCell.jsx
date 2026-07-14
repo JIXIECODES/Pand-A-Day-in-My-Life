@@ -10,7 +10,7 @@ export default function DayCell({ day, goals, isCurrentMonth, onSelect, schedule
   return (
     <button
       className={[
-        "min-h-28 rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg",
+        "min-h-24 rounded-2xl border p-2.5 text-left transition hover:-translate-y-0.5 hover:shadow-lg",
         isToday ? "border-zinc-950 bg-amber-50" : "border-white/80 bg-white/75",
         isCurrentMonth ? "text-zinc-950" : "text-zinc-400 opacity-70",
       ].join(" ")}
@@ -23,7 +23,7 @@ export default function DayCell({ day, goals, isCurrentMonth, onSelect, schedule
         </span>
         {completed > 0 && <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">{completed} done</span>}
       </div>
-      <div className="mt-3 space-y-1">
+      <div className="mt-2 space-y-1">
         {goals.slice(0, 2).map((goal) => (
           <div
             className={[

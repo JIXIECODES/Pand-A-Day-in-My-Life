@@ -6,7 +6,6 @@ import DaySchedule from "../components/DaySchedule.jsx";
 import DayPlannerModal from "../components/DayPlannerModal.jsx";
 
 const planningTabs = [
-  { id: "guide", label: "Guide" },
   { id: "calendar", label: "Calendar" },
   { id: "daily", label: "Daily" },
   { id: "longTerm", label: "Long-Term" },
@@ -20,14 +19,6 @@ const planningContext = {
       "Calendar blocks are scheduled goals with an exact date, start time, and end time. They stay separate from Daily and Long-Term goals.",
     accent: "bg-sky-50 text-sky-800",
     stat: "Time-based",
-  },
-  guide: {
-    eyebrow: "Planning guide",
-    title: "Pick the workflow that matches your goal.",
-    description:
-      "Choose daily goals for quick tasks you want to finish soon, long-term goals for bigger progress that grows over time, or calendar blocks when you need an exact date and time.",
-    accent: "bg-pink-50 text-pink-800",
-    stat: "Start here",
   },
   daily: {
     eyebrow: "Daily goals",
@@ -46,35 +37,6 @@ const planningContext = {
     stat: "Growth path",
   },
 };
-
-function GoalTypeInfoCard() {
-  return (
-    <section className="h-full rounded-[2rem] bg-white/80 p-5 shadow-xl shadow-zinc-200/60">
-      <p className="text-xs font-black uppercase text-pink-500">Planning guide</p>
-      <h2 className="mt-1 text-2xl font-black text-zinc-950">Choose the right kind of goal</h2>
-      <div className="mt-4 grid gap-3">
-        <article className="rounded-3xl bg-emerald-50 p-4">
-          <h3 className="font-black text-emerald-950">Daily Goals</h3>
-          <p className="mt-1 text-sm font-semibold text-emerald-800">
-            Simple goals you want to complete soon, like finishing homework, practicing, or cleaning your desk.
-          </p>
-        </article>
-        <article className="rounded-3xl bg-pink-50 p-4">
-          <h3 className="font-black text-pink-950">Long-Term Goals</h3>
-          <p className="mt-1 text-sm font-semibold text-pink-800">
-            Bigger goals that help you grow over time, like improving at coding, building a portfolio, or reading more.
-          </p>
-        </article>
-        <article className="rounded-3xl bg-sky-50 p-4">
-          <h3 className="font-black text-sky-950">Calendar Time Blocks</h3>
-          <p className="mt-1 text-sm font-semibold text-sky-800">
-            Scheduled goals with an exact date, start time, and end time, like studying from 1:00 PM to 3:00 PM.
-          </p>
-        </article>
-      </div>
-    </section>
-  );
-}
 
 const CALENDAR_HELP_STORAGE_KEY = "panda-day-hide-calendar-help";
 
@@ -122,13 +84,24 @@ function CalendarHelpPopover({ onClose, onDisable, open }) {
 
 export default function CalendarPage() {
   const { planningTab, selectedDate, setPlanningTab } = useAppContext();
-  const activeTab = planningTabs.some((tab) => tab.id === planningTab) ? planningTab : "guide";
+  const activeTab = planningTabs.some((tab) => tab.id === planningTab) ? planningTab : "calendar";
   const [plannerOpen, setPlannerOpen] = useState(false);
   const [calendarHelpOpen, setCalendarHelpOpen] = useState(false);
   const [hideCalendarHelp, setHideCalendarHelp] = useState(
     () => localStorage.getItem(CALENDAR_HELP_STORAGE_KEY) === "true",
   );
-  const activeContext = planningContext[activeTab] || planningContext.guide;
+  const activeContext = planningContext[activeTab] || planningContext.calendar;
+
+  useEffect(() => {
+    if (planningTab === activeTab) return;
+
+    setPlanningTab(activeTab);
+    window.history.replaceState(
+      { activePage: "calendar", planningTab: activeTab },
+      "",
+      `#planning?tab=${activeTab}`,
+    );
+  }, [activeTab, planningTab, setPlanningTab]);
 
   useEffect(() => {
     if (activeTab === "calendar" && !hideCalendarHelp) {
@@ -157,15 +130,19 @@ export default function CalendarPage() {
     setCalendarHelpOpen(false);
   }
 
+  const contentGridClass = activeTab === "calendar"
+    ? "grid items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
+    : "grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]";
+
   return (
-    <main className="planning-shell mx-auto flex max-w-7xl flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6">
-      <section className="shrink-0 rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
+    <main className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:px-6">
+      <section className="rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
         <p className="text-sm font-black text-pink-500">Planning</p>
         <div className="mt-1 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">Plan goals and calendar time blocks.</h1>
             <p className="mt-2 max-w-3xl text-sm font-semibold text-zinc-500">
-              Choose a category below. The guide, goals, and calendar blocks stay organized in their own spaces.
+              Use the calendar, daily goals, and long-term goals to keep your panda days organized.
             </p>
           </div>
           <div className="flex w-full flex-wrap gap-2 rounded-[1.5rem] bg-zinc-100 p-1 sm:inline-flex sm:w-auto sm:shrink-0 sm:rounded-full">
@@ -187,10 +164,8 @@ export default function CalendarPage() {
         </div>
       </section>
 
-      <section className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-        <div className="min-h-0 min-w-0 overflow-y-auto pr-1">
-          {activeTab === "guide" && <GoalTypeInfoCard />}
-
+      <section className={contentGridClass}>
+        <div className="min-w-0">
           {activeTab === "daily" && <HomeGoals kind="daily" />}
 
           {activeTab === "longTerm" && <HomeGoals kind="longTerm" />}
@@ -204,27 +179,27 @@ export default function CalendarPage() {
                   open={calendarHelpOpen}
                 />
               }
-              className="h-full"
               onOpenDay={() => setPlannerOpen(true)}
             />
           )}
         </div>
 
-        <aside className="min-h-0 min-w-0 overflow-y-auto">
-          <div className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-black uppercase opacity-70">{activeContext.eyebrow}</p>
-                <h2 className="mt-1 text-xl font-black">{activeContext.title}</h2>
+        <aside className="min-w-0 lg:sticky lg:top-24">
+          {activeTab !== "calendar" && (
+            <div className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase opacity-70">{activeContext.eyebrow}</p>
+                  <h2 className="mt-1 text-xl font-black">{activeContext.title}</h2>
+                </div>
+                <span className="shrink-0 rounded-full bg-white/75 px-3 py-1 text-xs font-black">{activeContext.stat}</span>
               </div>
-              <span className="shrink-0 rounded-full bg-white/75 px-3 py-1 text-xs font-black">{activeContext.stat}</span>
+              <p className="mt-3 text-sm font-semibold opacity-85">{activeContext.description}</p>
             </div>
-            <p className="mt-3 text-sm font-semibold opacity-85">{activeContext.description}</p>
-          </div>
+          )}
 
           {activeTab === "calendar" && (
             <DaySchedule
-              className="mt-4"
               date={selectedDate}
               onEditGoal={() => setPlannerOpen(true)}
               showForm={false}

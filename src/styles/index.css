@@ -16,16 +16,6 @@ body.navigation-drawer-open {
   overflow: hidden;
 }
 
-.planning-shell {
-  height: calc(100vh - 73px);
-}
-
-@supports (height: 100dvh) {
-  .planning-shell {
-    height: calc(100dvh - 73px);
-  }
-}
-
 button,
 input,
 textarea,

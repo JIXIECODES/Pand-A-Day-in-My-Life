@@ -50,7 +50,7 @@ import {
 const AppContext = createContext(null);
 
 function navigationFromLocation() {
-  if (typeof window === "undefined") return { page: "home", planningTab: "guide" };
+  if (typeof window === "undefined") return { page: "home", planningTab: "calendar" };
 
   const hash = window.location.hash.replace(/^#\/?/, "");
   const [pagePart, queryPart = ""] = hash.split("?");
@@ -58,10 +58,10 @@ function navigationFromLocation() {
   const tab = params.get("tab");
 
   if (pagePart === "planning" || pagePart === "calendar") {
-    return { page: "calendar", planningTab: tab || "guide" };
+    return { page: "calendar", planningTab: tab || "calendar" };
   }
 
-  return { page: pagePart || "home", planningTab: tab || "guide" };
+  return { page: pagePart || "home", planningTab: tab || "calendar" };
 }
 
 function normalizeJournalEntries(entries = {}) {
@@ -194,7 +194,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     function syncFromHistory(event) {
       const next = event.state?.activePage ? event.state : navigationFromLocation();
       setActivePageState(next.activePage || next.page || "home");
-      setPlanningTab(next.planningTab || "guide");
+      setPlanningTab(next.planningTab || "calendar");
     }
 
     window.history.replaceState(
@@ -207,7 +207,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   }, []);
 
   function navigatePage(page, options = {}) {
-    const nextPlanningTab = options.planningTab || (page === "calendar" ? planningTab : "guide");
+    const nextPlanningTab = options.planningTab || (page === "calendar" ? planningTab : "calendar");
     setActivePageState(page);
     if (page === "calendar") setPlanningTab(nextPlanningTab);
     const nextUrl = page === "calendar" && nextPlanningTab
