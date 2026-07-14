@@ -6,7 +6,7 @@ import TimeBlock from "./TimeBlock.jsx";
 
 const hours = Array.from({ length: 24 }, (_, index) => index);
 
-export default function DaySchedule({ date, onEditGoal, showForm = true }) {
+export default function DaySchedule({ className = "", date, onEditGoal, showForm = true }) {
   const { scheduledGoals, selectedDate } = useAppContext();
   const [localEditingGoal, setLocalEditingGoal] = useState(null);
   const activeDate = date || selectedDate;
@@ -21,7 +21,7 @@ export default function DaySchedule({ date, onEditGoal, showForm = true }) {
   );
 
   return (
-    <section className={showForm ? "grid gap-5 lg:grid-cols-[20rem_1fr]" : "grid gap-5"}>
+    <section className={`${showForm ? "grid gap-5 lg:grid-cols-[20rem_1fr]" : "grid gap-5"} ${className}`}>
       {showForm && <GoalBlockForm date={activeDate} editingGoal={editingGoal} onDone={() => setLocalEditingGoal(null)} />}
 
       <div className="rounded-[2rem] bg-white/70 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">

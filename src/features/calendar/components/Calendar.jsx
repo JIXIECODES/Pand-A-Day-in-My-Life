@@ -4,7 +4,7 @@ import { useAppContext } from "../../../app/AppProvider.jsx";
 import { getMonthDays, weekdayLabels } from "../utils/dateUtils.js";
 import DayCell from "./DayCell.jsx";
 
-export default function Calendar({ calendarHelp, onOpenDay }) {
+export default function Calendar({ calendarHelp, className = "", onOpenDay }) {
   const { currentMonth, goalsByDate, scheduledGoals, setCurrentMonth, setSelectedDate } = useAppContext();
   const days = getMonthDays(currentMonth);
 
@@ -14,8 +14,8 @@ export default function Calendar({ calendarHelp, onOpenDay }) {
   }
 
   return (
-    <section className="rounded-[2rem] border border-white/80 bg-white/60 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className={`flex min-h-0 flex-col rounded-[2rem] border border-white/80 bg-white/60 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-6 ${className}`}>
+      <div className="shrink-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-black text-pink-500">Monthly care map</p>
           <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">{currentMonth.format("MMMM YYYY")}</h1>
@@ -33,12 +33,12 @@ export default function Calendar({ calendarHelp, onOpenDay }) {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-2 text-center text-xs font-black uppercase text-zinc-400">
+      <div className="mt-6 grid shrink-0 grid-cols-7 gap-2 text-center text-xs font-black uppercase text-zinc-400">
         {weekdayLabels().map((label) => (
           <div key={label}>{label}</div>
         ))}
       </div>
-      <div className="relative mt-2">
+      <div className="relative mt-2 min-h-0 flex-1 overflow-y-auto pr-1">
         {calendarHelp}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
           {days.map((day) => {

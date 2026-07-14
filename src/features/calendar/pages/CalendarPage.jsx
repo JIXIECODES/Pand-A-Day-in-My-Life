@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAppContext } from "../../../app/AppProvider.jsx";
 import HomeGoals from "../../goals/components/HomeGoals.jsx";
 import Calendar from "../components/Calendar.jsx";
+import DaySchedule from "../components/DaySchedule.jsx";
 import DayPlannerModal from "../components/DayPlannerModal.jsx";
 
 const planningTabs = [
@@ -119,7 +121,8 @@ function CalendarHelpPopover({ onClose, onDisable, open }) {
 }
 
 export default function CalendarPage() {
-  const [activeTab, setActiveTab] = useState("guide");
+  const { planningTab, selectedDate, setPlanningTab } = useAppContext();
+  const activeTab = planningTabs.some((tab) => tab.id === planningTab) ? planningTab : "guide";
   const [plannerOpen, setPlannerOpen] = useState(false);
   const [calendarHelpOpen, setCalendarHelpOpen] = useState(false);
   const [hideCalendarHelp, setHideCalendarHelp] = useState(
@@ -127,11 +130,21 @@ export default function CalendarPage() {
   );
   const activeContext = planningContext[activeTab] || planningContext.guide;
 
-  function selectTab(tabId) {
-    setActiveTab(tabId);
-    if (tabId === "calendar" && !hideCalendarHelp) {
+  useEffect(() => {
+    if (activeTab === "calendar" && !hideCalendarHelp) {
       setCalendarHelpOpen(true);
+    } else {
+      setCalendarHelpOpen(false);
     }
+  }, [activeTab, hideCalendarHelp]);
+
+  function selectTab(tabId) {
+    setPlanningTab(tabId);
+    window.history.replaceState(
+      { activePage: "calendar", planningTab: tabId },
+      "",
+      `#planning?tab=${tabId}`,
+    );
   }
 
   function closeCalendarHelp() {
@@ -145,33 +158,60 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
-      <section className="rounded-[2rem] bg-white/70 p-6 shadow-xl shadow-zinc-200/60 backdrop-blur">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-start">
-          <div>
-            <p className="text-sm font-black text-pink-500">Planning</p>
-            <h1 className="mt-1 text-4xl font-black text-zinc-950">Plan goals and calendar time blocks.</h1>
+    <main className="planning-shell mx-auto flex max-w-7xl flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6">
+      <section className="shrink-0 rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
+        <p className="text-sm font-black text-pink-500">Planning</p>
+        <div className="mt-1 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">Plan goals and calendar time blocks.</h1>
             <p className="mt-2 max-w-3xl text-sm font-semibold text-zinc-500">
               Choose a category below. The guide, goals, and calendar blocks stay organized in their own spaces.
             </p>
-            <div className="mt-5 flex w-full flex-wrap gap-2 rounded-[1.5rem] bg-zinc-100 p-1 sm:inline-flex sm:w-auto sm:rounded-full">
-              {planningTabs.map((tab) => (
-                <button
-                  aria-pressed={activeTab === tab.id}
-                  className={[
-                    "rounded-full px-5 py-2 text-sm font-black transition",
-                    activeTab === tab.id ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-600 hover:bg-white",
-                  ].join(" ")}
-                  key={tab.id}
-                  onClick={() => selectTab(tab.id)}
-                  type="button"
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
           </div>
-          <aside className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
+          <div className="flex w-full flex-wrap gap-2 rounded-[1.5rem] bg-zinc-100 p-1 sm:inline-flex sm:w-auto sm:shrink-0 sm:rounded-full">
+            {planningTabs.map((tab) => (
+              <button
+                aria-pressed={activeTab === tab.id}
+                className={[
+                  "rounded-full px-5 py-2 text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-pink-200 active:scale-[0.98]",
+                  activeTab === tab.id ? "bg-zinc-950 text-white shadow-sm" : "text-zinc-600 hover:bg-white",
+                ].join(" ")}
+                key={tab.id}
+                onClick={() => selectTab(tab.id)}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+        <div className="min-h-0 min-w-0 overflow-y-auto pr-1">
+          {activeTab === "guide" && <GoalTypeInfoCard />}
+
+          {activeTab === "daily" && <HomeGoals kind="daily" />}
+
+          {activeTab === "longTerm" && <HomeGoals kind="longTerm" />}
+
+          {activeTab === "calendar" && (
+            <Calendar
+              calendarHelp={
+                <CalendarHelpPopover
+                  onClose={closeCalendarHelp}
+                  onDisable={disableCalendarHelp}
+                  open={calendarHelpOpen}
+                />
+              }
+              className="h-full"
+              onOpenDay={() => setPlannerOpen(true)}
+            />
+          )}
+        </div>
+
+        <aside className="min-h-0 min-w-0 overflow-y-auto">
+          <div className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase opacity-70">{activeContext.eyebrow}</p>
@@ -180,31 +220,20 @@ export default function CalendarPage() {
               <span className="shrink-0 rounded-full bg-white/75 px-3 py-1 text-xs font-black">{activeContext.stat}</span>
             </div>
             <p className="mt-3 text-sm font-semibold opacity-85">{activeContext.description}</p>
-          </aside>
-        </div>
+          </div>
+
+          {activeTab === "calendar" && (
+            <DaySchedule
+              className="mt-4"
+              date={selectedDate}
+              onEditGoal={() => setPlannerOpen(true)}
+              showForm={false}
+            />
+          )}
+        </aside>
       </section>
 
-      {activeTab === "guide" && <GoalTypeInfoCard />}
-
-      {activeTab === "daily" && <HomeGoals kind="daily" />}
-
-      {activeTab === "longTerm" && <HomeGoals kind="longTerm" />}
-
-      {activeTab === "calendar" && (
-        <>
-          <Calendar
-            calendarHelp={
-              <CalendarHelpPopover
-                onClose={closeCalendarHelp}
-                onDisable={disableCalendarHelp}
-                open={calendarHelpOpen}
-              />
-            }
-            onOpenDay={() => setPlannerOpen(true)}
-          />
-          <DayPlannerModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
-        </>
-      )}
+      <DayPlannerModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
     </main>
   );
 }

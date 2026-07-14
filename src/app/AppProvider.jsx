@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { decorations } from "../data/decorations.js";
 import { NO_OUTFIT_ID, normalizeOutfitId, outfits } from "../data/outfits.js";
 import { evaluateAchievements } from "../features/rewards/utils/achievementLogic.js";
@@ -49,6 +49,21 @@ import {
 
 const AppContext = createContext(null);
 
+function navigationFromLocation() {
+  if (typeof window === "undefined") return { page: "home", planningTab: "guide" };
+
+  const hash = window.location.hash.replace(/^#\/?/, "");
+  const [pagePart, queryPart = ""] = hash.split("?");
+  const params = new URLSearchParams(queryPart);
+  const tab = params.get("tab");
+
+  if (pagePart === "planning" || pagePart === "calendar") {
+    return { page: "calendar", planningTab: tab || "guide" };
+  }
+
+  return { page: pagePart || "home", planningTab: tab || "guide" };
+}
+
 function normalizeJournalEntries(entries = {}) {
   return Object.fromEntries(
     Object.entries(entries).map(([key, entry]) => {
@@ -95,7 +110,9 @@ function unlockByRequirements(items, stats, currentIds) {
 }
 
 export function AppProvider({ authSession = null, children, onLogout = () => {} }) {
-  const [activePage, setActivePage] = useState("home");
+  const initialNavigation = useMemo(() => navigationFromLocation(), []);
+  const [activePage, setActivePageState] = useState(initialNavigation.page);
+  const [planningTab, setPlanningTab] = useState(initialNavigation.planningTab);
   const [goalsByDate, setGoalsByDate] = useState(() => getAllGoals());
   const [classicGoals, setClassicGoals] = useState(() => getClassicGoals());
   const [longTermGoals, setLongTermGoals] = useState(() => getLongTermGoals());
@@ -173,8 +190,30 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     return savedStats;
   }
 
-  function navigatePage(page) {
-    setActivePage(page);
+  useEffect(() => {
+    function syncFromHistory(event) {
+      const next = event.state?.activePage ? event.state : navigationFromLocation();
+      setActivePageState(next.activePage || next.page || "home");
+      setPlanningTab(next.planningTab || "guide");
+    }
+
+    window.history.replaceState(
+      { activePage, planningTab },
+      "",
+      window.location.href,
+    );
+    window.addEventListener("popstate", syncFromHistory);
+    return () => window.removeEventListener("popstate", syncFromHistory);
+  }, []);
+
+  function navigatePage(page, options = {}) {
+    const nextPlanningTab = options.planningTab || (page === "calendar" ? planningTab : "guide");
+    setActivePageState(page);
+    if (page === "calendar") setPlanningTab(nextPlanningTab);
+    const nextUrl = page === "calendar" && nextPlanningTab
+      ? `#planning?tab=${nextPlanningTab}`
+      : `#${page}`;
+    window.history.pushState({ activePage: page, planningTab: nextPlanningTab }, "", nextUrl);
     if (page === "panda") {
       completeDailyTask("visit-panda-page");
     }
@@ -524,6 +563,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       journalEntries,
       longTermGoals,
       pandaStats,
+      planningTab,
       removeClassicGoal,
       removeGoal,
       removeJournalEntry,
@@ -537,6 +577,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       selectedDate,
       setActivePage: navigatePage,
       setCurrentMonth,
+      setPlanningTab,
       setSelectedDate,
       setTimerGoal,
       settings,
@@ -566,6 +607,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       journalEntries,
       longTermGoals,
       pandaStats,
+      planningTab,
       scheduledGoals,
       selectedDate,
       settings,

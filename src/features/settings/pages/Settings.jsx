@@ -1,7 +1,6 @@
 import React from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { categoryKey, GOAL_CATEGORIES } from "../../../shared/utils/storage.js";
-import TimerSettings from "../../goals/components/TimerSettings.jsx";
 
 const timezones = [
   "Local",
@@ -80,10 +79,6 @@ export default function Settings() {
               <option value="winter">Winter</option>
             </select>
           </label>
-
-          <div className="rounded-3xl bg-zinc-950 p-4">
-            <TimerSettings />
-          </div>
 
           <section className="rounded-3xl bg-zinc-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
