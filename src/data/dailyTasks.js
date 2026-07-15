@@ -8,19 +8,19 @@ export const DAILY_TASK_POOL = [
   {
     id: "complete-goal",
     title: "Complete one goal",
-    description: "Finish any Daily Goal, Long-Term Goal, or Planning time block.",
+    description: "Finish any Daily Goal, Long-Term Goal, or Calendar and Goals time block.",
     reward: { xp: 15, happiness: 8, energy: 0 },
   },
   {
     id: "create-classic-goal",
     title: "Create one Daily Goal",
-    description: "Add a Daily Goal in Planning.",
+    description: "Add a Daily Goal in Calendar and Goals.",
     reward: { xp: 10, happiness: 5, energy: 0 },
   },
   {
     id: "schedule-time-block",
-    title: "Schedule one Planning time block",
-    description: "Plan a goal into the Planning calendar schedule.",
+    title: "Schedule one Calendar and Goals time block",
+    description: "Plan a goal into the Calendar and Goals schedule.",
     reward: { xp: 10, happiness: 5, energy: 0 },
   },
   {

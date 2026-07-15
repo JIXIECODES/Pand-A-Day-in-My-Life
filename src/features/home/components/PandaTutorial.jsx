@@ -6,7 +6,7 @@ const guideSections = [
     accent: "bg-amber-100 text-amber-800",
     items: [
       "Your panda levels up by earning XP.",
-      "Completing Daily Goals, Long-Term Goals, or scheduled Planning time blocks gives XP based on difficulty.",
+      "Completing Daily Goals, Long-Term Goals, or scheduled Calendar and Goals time blocks gives XP based on difficulty.",
       "Finishing a focus timer gives XP, and it can also complete the selected goal for its goal XP.",
       "Saving a journal memory gives a small XP boost.",
       "Daily rewards sometimes give XP.",
@@ -17,7 +17,7 @@ const guideSections = [
     accent: "bg-pink-100 text-pink-700",
     items: [
       "Happiness grows when you make positive progress.",
-      "Completing Daily Goals, Long-Term Goals, or scheduled Planning time blocks increases happiness.",
+      "Completing Daily Goals, Long-Term Goals, or scheduled Calendar and Goals time blocks increases happiness.",
       "Saving journal memories and finishing focus timer sessions also raise happiness.",
       "Daily rewards sometimes give happiness, and claiming them always counts as panda care.",
     ],
@@ -32,11 +32,11 @@ const guideSections = [
     ],
   },
   {
-    title: "Planning",
+    title: "Calendar and Goals",
     accent: "bg-sky-100 text-sky-800",
     items: [
-      "Use the Planning page's Goals tab for Daily Goals and Long-Term Goals.",
-      "Create, edit, delete, and complete unscheduled goals in the Goals tab.",
+      "Use Calendar and Goals for Daily Goals and Long-Term Goals.",
+      "Create, edit, delete, and complete unscheduled goals in the Daily and Long-Term tabs.",
       "Use the Calendar tab to click dates and schedule time-blocked goals with exact start and end times.",
     ],
   },
@@ -50,7 +50,7 @@ export default function PandaTutorial({ compact = false }) {
         <h2 className={`${compact ? "text-xl" : "text-2xl"} font-black text-zinc-950`}>How to Raise Your Panda</h2>
         {!compact && (
           <p className="mt-1 text-sm font-semibold text-zinc-500">
-            A quick guide to the habits and Planning tools that help your panda grow, feel happier, and stay energized.
+            A quick guide to the habits and Calendar and Goals tools that help your panda grow, feel happier, and stay energized.
           </p>
         )}
       </div>

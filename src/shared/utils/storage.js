@@ -117,6 +117,7 @@ export function getClassicGoals() {
   return getData(STORAGE_KEYS.classicGoals, []).map((goal) => ({
     ...goal,
     type: "classic",
+    goalType: "daily",
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
     xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
@@ -128,6 +129,7 @@ export function saveClassicGoal(goal) {
   const nextGoal = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     type: "classic",
+    goalType: "daily",
     title: goal.title,
     description: goal.description || "",
     category: goal.category || "Personal",
@@ -143,7 +145,7 @@ export function saveClassicGoal(goal) {
 
 export function updateClassicGoal(id, updates = {}) {
   const classicGoals = getClassicGoals().map((goal) =>
-    goal.id === id ? { ...goal, ...updates, type: "classic" } : goal,
+    goal.id === id ? { ...goal, ...updates, type: "classic", goalType: "daily" } : goal,
   );
   saveData(STORAGE_KEYS.classicGoals, classicGoals);
   return classicGoals;
@@ -159,6 +161,7 @@ export function getLongTermGoals() {
   return getData(STORAGE_KEYS.longTermGoals, []).map((goal) => ({
     ...goal,
     type: "longTerm",
+    goalType: "long-term",
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "medium",
     xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
@@ -170,6 +173,7 @@ export function saveLongTermGoal(goal) {
   const nextGoal = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     type: "longTerm",
+    goalType: "long-term",
     title: goal.title,
     description: goal.description || "",
     category: goal.category || "Personal",
@@ -185,7 +189,7 @@ export function saveLongTermGoal(goal) {
 
 export function updateLongTermGoal(id, updates = {}) {
   const longTermGoals = getLongTermGoals().map((goal) =>
-    goal.id === id ? { ...goal, ...updates, type: "longTerm" } : goal,
+    goal.id === id ? { ...goal, ...updates, type: "longTerm", goalType: "long-term" } : goal,
   );
   saveData(STORAGE_KEYS.longTermGoals, longTermGoals);
   return longTermGoals;
@@ -226,6 +230,8 @@ export function getScheduledGoals() {
   return getData(STORAGE_KEYS.scheduledGoals, []).map((goal) => ({
     ...goal,
     type: "scheduled",
+    goalType: goal.goalType === "long-term" ? "long-term" : "daily",
+    scheduled: true,
     description: goal.description || "",
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
@@ -238,6 +244,8 @@ export function saveScheduledGoal(goal) {
   const nextGoal = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     type: "scheduled",
+    goalType: goal.goalType === "long-term" ? "long-term" : "daily",
+    scheduled: true,
     title: goal.title,
     description: goal.description || "",
     date: goal.date,

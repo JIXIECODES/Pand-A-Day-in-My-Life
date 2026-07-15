@@ -376,6 +376,25 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     }
   }
 
+  function completeScheduledGoal(id) {
+    const goal = scheduledGoals.find((item) => item.id === id);
+    if (!goal || goal.completed) return;
+
+    const completingForFirstTime = !goal.xpAwarded;
+    const nextScheduledGoals = updateScheduledGoal(id, {
+      completed: true,
+      xpAwarded: true,
+    });
+    setScheduledGoals(nextScheduledGoals);
+
+    if (completingForFirstTime) {
+      const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      completeDailyTask("complete-goal", nextStats);
+    } else {
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+    }
+  }
+
   function removeScheduledGoal(id) {
     setScheduledGoals(deleteScheduledGoal(id));
     persistStats(withMood(pandaStats, "idle", "Scheduled goal removed"));
@@ -455,7 +474,14 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     let nextStats = focusFinishedStats(pandaStats);
     let completedGoalForTask = false;
 
-    if (timerGoal?.type === "classic" && timerGoal?.id && !timerGoal.completed) {
+    if (timerGoal?.type === "scheduled" && timerGoal?.id && !timerGoal.completed) {
+      const firstAward = !timerGoal.xpAwarded;
+      const nextScheduledGoals = updateScheduledGoal(timerGoal.id, { completed: true, xpAwarded: true });
+      setScheduledGoals(nextScheduledGoals);
+      nextStats = firstAward ? completeGoalStats(nextStats, { ...timerGoal, difficulty: timerGoal.difficulty || "medium" }, false) : celebrateAlreadyAwardedGoal(nextStats);
+      completedGoalForTask = firstAward;
+      setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
+    } else if (timerGoal?.type === "classic" && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
       const nextClassicGoals = updateClassicGoal(timerGoal.id, { completed: true, xpAwarded: true });
       setClassicGoals(nextClassicGoals);
@@ -547,6 +573,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       categoryColors,
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
+      completeScheduledGoal,
       clearToast: () => setToast(""),
       currentMonth,
       dailyRewards,

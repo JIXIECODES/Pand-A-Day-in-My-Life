@@ -47,14 +47,16 @@ function OutfitLayer({ outfitId }) {
   return null;
 }
 
-export default function PandaCompanion({ compact = false }) {
+export default function PandaCompanion({ compact = false, frameless = false }) {
   const { equippedOutfit, pandaStats } = useAppContext();
   const mood = pandaMoods[pandaStats.mood] || pandaMoods.idle;
   const moodImage = getPandaMoodImage(pandaStats.mood);
   const outfit = outfits.find((item) => item.id === equippedOutfit);
 
+  const Wrapper = frameless ? "div" : "section";
+
   return (
-    <section className="rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
+    <Wrapper className={frameless ? "p-0" : "rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur"}>
       <div className="flex flex-col items-center text-center">
         <div className={`relative grid h-48 w-52 place-items-center overflow-hidden rounded-[2rem] bg-white shadow-inner ring-1 ring-zinc-100 ${mood.animation}`} aria-label={outfit ? `Panda wearing ${outfit.name}` : "Panda companion"}>
           <img
@@ -75,6 +77,6 @@ export default function PandaCompanion({ compact = false }) {
           <ProgressBar label="Energy" value={pandaStats.energy} max={100} tone="amber" />
         </div>
       )}
-    </section>
+    </Wrapper>
   );
 }

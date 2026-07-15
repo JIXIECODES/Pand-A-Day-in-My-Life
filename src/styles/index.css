@@ -39,6 +39,26 @@ select {
   max-width: 3.5rem;
 }
 
+.sketch-strike {
+  position: relative;
+  display: inline;
+}
+
+.sketch-strike::after {
+  content: "";
+  position: absolute;
+  left: -0.15rem;
+  right: -0.15rem;
+  top: 58%;
+  height: 0.45rem;
+  pointer-events: none;
+  background:
+    linear-gradient(176deg, transparent 36%, rgba(244, 114, 182, 0.82) 39%, rgba(244, 114, 182, 0.82) 45%, transparent 48%),
+    linear-gradient(183deg, transparent 48%, rgba(251, 191, 36, 0.75) 51%, rgba(251, 191, 36, 0.75) 57%, transparent 60%);
+  border-radius: 999px;
+  transform: rotate(-1.5deg);
+}
+
 .auth-input {
   width: 100%;
   border-radius: 1rem;

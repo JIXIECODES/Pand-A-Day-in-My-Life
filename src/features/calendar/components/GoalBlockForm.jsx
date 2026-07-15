@@ -8,6 +8,7 @@ const emptyForm = {
   startTime: "09:00",
   endTime: "10:00",
   category: "Personal",
+  goalType: "",
   difficulty: "easy",
 };
 
@@ -35,6 +36,7 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
         startTime: editingGoal.startTime,
         endTime: editingGoal.endTime,
         category: editingGoal.category,
+        goalType: editingGoal.goalType || "daily",
         difficulty: editingGoal.difficulty || "easy",
       });
     } else {
@@ -53,6 +55,7 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
     const nextErrors = {};
     if (!form.title.trim()) nextErrors.title = "Goal title is required.";
     if (!form.category) nextErrors.category = "Please choose a category.";
+    if (!form.goalType) nextErrors.goalType = "Please choose a goal type.";
     if (!form.startTime || !form.endTime) nextErrors.time = "Start and end time are required.";
     if (form.endTime <= form.startTime) {
       nextErrors.time = "End time must be after start time.";
@@ -139,6 +142,21 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
             ))}
           </select>
           {errors.category && <span className="mt-1 block text-xs font-bold text-rose-500">{errors.category}</span>}
+        </label>
+        <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-goal-type">
+          Goal Type
+          <select
+            className="mt-1 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3"
+            id="scheduled-goal-type"
+            name="goalType"
+            onChange={updateField}
+            value={form.goalType}
+          >
+            <option value="">Choose a goal type</option>
+            <option value="daily">Daily</option>
+            <option value="long-term">Long-Term</option>
+          </select>
+          {errors.goalType && <span className="mt-1 block text-xs font-bold text-rose-500">{errors.goalType}</span>}
         </label>
         <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-difficulty">
           Difficulty

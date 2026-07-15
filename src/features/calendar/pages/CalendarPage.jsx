@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
-import HomeGoals from "../../goals/components/HomeGoals.jsx";
+import HomeGoals, { GoalComposer } from "../../goals/components/HomeGoals.jsx";
 import Calendar from "../components/Calendar.jsx";
 import DaySchedule from "../components/DaySchedule.jsx";
 import DayPlannerModal from "../components/DayPlannerModal.jsx";
@@ -16,7 +16,7 @@ const planningContext = {
     eyebrow: "Calendar time blocks",
     title: "Click a date, then schedule a focused block.",
     description:
-      "Calendar blocks are scheduled goals with an exact date, start time, and end time. They stay separate from Daily and Long-Term goals.",
+      "Calendar blocks are scheduled goals with an exact date, start time, end time, and goal type. They also appear in Daily or Long-Term.",
     accent: "bg-sky-50 text-sky-800",
     stat: "Time-based",
   },
@@ -131,16 +131,16 @@ export default function CalendarPage() {
   }
 
   const contentGridClass = activeTab === "calendar"
-    ? "grid items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
-    : "grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]";
+    ? "grid min-h-0 items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
+    : "grid min-h-0 items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]";
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:px-6">
-      <section className="rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
-        <p className="text-sm font-black text-pink-500">Planning</p>
+    <main className="mx-auto flex min-h-[calc(100vh-5.5rem)] min-h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6">
+      <section className="shrink-0 rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
+        <p className="text-sm font-black text-pink-500">Calendar and Goals</p>
         <div className="mt-1 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">Plan goals and calendar time blocks.</h1>
+            <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">Calendar and Goals</h1>
             <p className="mt-2 max-w-3xl text-sm font-semibold text-zinc-500">
               Use the calendar, daily goals, and long-term goals to keep your panda days organized.
             </p>
@@ -164,11 +164,11 @@ export default function CalendarPage() {
         </div>
       </section>
 
-      <section className={contentGridClass}>
-        <div className="min-w-0">
-          {activeTab === "daily" && <HomeGoals kind="daily" />}
+      <section className={`${contentGridClass} flex-1 overflow-visible lg:overflow-hidden`}>
+        <div className="min-h-0 min-w-0 lg:overflow-hidden">
+          {activeTab === "daily" && <HomeGoals kind="daily" showComposer={false} />}
 
-          {activeTab === "longTerm" && <HomeGoals kind="longTerm" />}
+          {activeTab === "longTerm" && <HomeGoals kind="longTerm" showComposer={false} />}
 
           {activeTab === "calendar" && (
             <Calendar
@@ -184,26 +184,38 @@ export default function CalendarPage() {
           )}
         </div>
 
-        <aside className="min-w-0 lg:sticky lg:top-24">
+        <aside className="min-h-0 min-w-0 lg:overflow-y-auto">
           {activeTab !== "calendar" && (
-            <div className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-black uppercase opacity-70">{activeContext.eyebrow}</p>
-                  <h2 className="mt-1 text-xl font-black">{activeContext.title}</h2>
+            <div className="grid gap-4">
+              <div className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase opacity-70">{activeContext.eyebrow}</p>
+                    <h2 className="mt-1 text-xl font-black">{activeContext.title}</h2>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-white/75 px-3 py-1 text-xs font-black">{activeContext.stat}</span>
                 </div>
-                <span className="shrink-0 rounded-full bg-white/75 px-3 py-1 text-xs font-black">{activeContext.stat}</span>
+                <p className="mt-3 text-sm font-semibold opacity-85">{activeContext.description}</p>
               </div>
-              <p className="mt-3 text-sm font-semibold opacity-85">{activeContext.description}</p>
+              <GoalComposer kind={activeTab === "longTerm" ? "longTerm" : "daily"} />
             </div>
           )}
 
           {activeTab === "calendar" && (
-            <DaySchedule
-              date={selectedDate}
-              onEditGoal={() => setPlannerOpen(true)}
-              showForm={false}
-            />
+            <div className="grid gap-3">
+              <button
+                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                onClick={() => setPlannerOpen(true)}
+                type="button"
+              >
+                Add or Edit Time Block
+              </button>
+              <DaySchedule
+                date={selectedDate}
+                onEditGoal={() => setPlannerOpen(true)}
+                showForm={false}
+              />
+            </div>
           )}
         </aside>
       </section>

@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
-import DailyReward from "../../rewards/components/DailyReward.jsx";
-import PandaTutorial from "../components/PandaTutorial.jsx";
+import FocusTimer from "../../goals/components/FocusTimer.jsx";
 import PandaCompanion from "../../panda/components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../../panda/components/PandaMoodDisplay.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
@@ -8,19 +7,30 @@ import { greetingForNow, todayKey } from "../../calendar/utils/dateUtils.js";
 
 function PandaGreetingBubble() {
   return (
-    <div className="flex justify-center px-3 sm:justify-start sm:pl-10">
+    <div className="flex justify-center">
       <div className="relative max-w-xs rounded-[1.5rem] border border-pink-100 bg-white/90 px-5 py-3 text-center text-lg font-black text-zinc-950 shadow-lg shadow-pink-100/70">
         What are you doing today?
         <span
           aria-hidden="true"
-          className="absolute -bottom-2 left-1/2 size-5 -translate-x-1/2 rotate-45 border-b border-r border-pink-100 bg-white/90 sm:left-16 sm:translate-x-0"
+          className="absolute -right-2 top-1/2 hidden size-5 -translate-y-1/2 rotate-45 border-r border-t border-pink-100 bg-white/90 sm:block"
         />
       </div>
     </div>
   );
 }
 
-function TodayGoalsBoard({ goals, onOpenCalendar }) {
+function PandaDisplayFrame() {
+  return (
+    <section className="rounded-[2rem] border border-white/80 bg-white/65 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
+      <div className="grid items-center gap-5 sm:grid-cols-[minmax(12rem,0.85fr)_minmax(16rem,1fr)]">
+        <PandaGreetingBubble />
+        <PandaCompanion frameless />
+      </div>
+    </section>
+  );
+}
+
+function TodayGoalsBoard({ goals, onCompleteGoal, onOpenCalendar }) {
   const visibleGoals = goals.slice(0, 3);
 
   return (
@@ -40,10 +50,41 @@ function TodayGoalsBoard({ goals, onOpenCalendar }) {
               visibleGoals.map((goal) => (
                 <article className="relative rounded-2xl bg-white px-4 py-3 shadow-sm" key={goal.id}>
                   <span className="absolute left-1/2 top-0 h-3 w-12 -translate-x-1/2 -translate-y-1/2 rotate-1 rounded-sm bg-amber-200/80" aria-hidden="true" />
-                  <p className="text-sm font-black text-zinc-800">{goal.title}</p>
-                  <p className="mt-1 text-xs font-bold text-zinc-500">
-                    {goal.startTime && goal.endTime ? `${goal.startTime} - ${goal.endTime}` : goal.category || "Planning"}
-                  </p>
+                  <div className="flex items-start gap-3">
+                    <button
+                      aria-label={goal.completed ? `${goal.title} complete` : `Mark ${goal.title} complete`}
+                      className={[
+                        "mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-emerald-100",
+                        goal.completed
+                          ? "border-emerald-300 bg-emerald-500 text-white"
+                          : "border-emerald-100 bg-emerald-50 text-emerald-700 hover:-translate-y-0.5 hover:bg-emerald-100",
+                      ].join(" ")}
+                      disabled={goal.completed}
+                      onClick={() => onCompleteGoal(goal.id)}
+                      type="button"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        className="size-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        viewBox="0 0 24 24"
+                      >
+                        {goal.completed ? <path d="M5 12.5 10 17l9-10" /> : <circle cx="12" cy="12" r="7" />}
+                      </svg>
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-sm font-black text-zinc-800 ${goal.completed ? "sketch-strike text-zinc-500" : ""}`}>
+                        {goal.title}
+                      </p>
+                      <p className="mt-1 text-xs font-bold text-zinc-500">
+                        {goal.startTime && goal.endTime ? `${goal.startTime} - ${goal.endTime}` : goal.category || "Calendar and Goals"}
+                      </p>
+                    </div>
+                  </div>
                 </article>
               ))
             ) : (
@@ -53,7 +94,7 @@ function TodayGoalsBoard({ goals, onOpenCalendar }) {
 
           {goals.length > visibleGoals.length && (
             <p className="mt-3 rounded-full bg-white/70 px-4 py-2 text-center text-xs font-black text-amber-900">
-              View all in Planning
+              View all in Calendar and Goals
             </p>
           )}
 
@@ -71,18 +112,11 @@ function TodayGoalsBoard({ goals, onOpenCalendar }) {
 }
 
 export default function Home() {
-  const { journalEntries, pandaStats, scheduledGoals, setActivePage } = useAppContext();
+  const { completeScheduledGoal, scheduledGoals, setActivePage } = useAppContext();
   const todaysGoals = useMemo(
     () => scheduledGoals.filter((goal) => goal.date === todayKey()).sort((a, b) => a.startTime.localeCompare(b.startTime)),
     [scheduledGoals],
   );
-  const scheduledGoalCount = scheduledGoals.filter((goal) => !goal.completed).length;
-  const latestMemory = useMemo(() => {
-    const entries = Object.values(journalEntries).sort((a, b) =>
-      (b.createdAt || b.date).localeCompare(a.createdAt || a.date),
-    );
-    return entries[0];
-  }, [journalEntries]);
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
@@ -93,41 +127,19 @@ export default function Home() {
 
       <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.9fr)]">
         <div className="grid gap-5">
-          <PandaGreetingBubble />
-          <PandaCompanion />
+          <PandaDisplayFrame />
           <PandaMoodDisplay />
-          <div className="grid gap-5 sm:grid-cols-2">
-            <section className="rounded-[1.5rem] bg-white/80 p-4 shadow-sm">
-              <p className="text-xs font-black uppercase text-pink-500">Streak</p>
-              <p className="mt-1 text-4xl font-black text-zinc-950">{pandaStats.streak}</p>
-              <p className="text-sm font-semibold text-zinc-500">days with completed goals</p>
-            </section>
-            <DailyReward />
-          </div>
         </div>
 
         <div className="grid gap-5">
-          <TodayGoalsBoard goals={todaysGoals} onOpenCalendar={() => setActivePage("calendar", { planningTab: "calendar" })} />
-          <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
-            <p className="text-xs font-black uppercase text-pink-500">Recent memory</p>
-            <p className="mt-2 text-sm font-semibold text-zinc-600">
-              {latestMemory ? `Your panda remembers: "${latestMemory.text}"` : "Write a journal entry to create your first panda memory."}
-            </p>
-          </section>
-          <section className="rounded-[2rem] bg-white/75 p-5 shadow-xl shadow-zinc-200/60">
-            <p className="text-xs font-black uppercase text-pink-500">Planning preview</p>
-            <h2 className="mt-1 text-2xl font-black text-zinc-950">Manage goals in Planning</h2>
-            <div className="mt-4 flex flex-col gap-3 rounded-3xl bg-zinc-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-black text-zinc-700">{scheduledGoalCount} active scheduled goals</p>
-              <button className="rounded-full bg-zinc-950 px-5 py-3 font-black text-white" onClick={() => setActivePage("calendar")} type="button">
-                Open Planning
-              </button>
-            </div>
-          </section>
+          <TodayGoalsBoard
+            goals={todaysGoals}
+            onCompleteGoal={completeScheduledGoal}
+            onOpenCalendar={() => setActivePage("calendar", { planningTab: "calendar" })}
+          />
+          <FocusTimer />
         </div>
       </section>
-
-      <PandaTutorial />
     </main>
   );
 }

@@ -5,6 +5,7 @@ import { categoryKey } from "../../../shared/utils/storage.js";
 export default function ScheduledGoalCard({ goal, onEdit }) {
   const { categoryColors, removeScheduledGoal, toggleScheduledGoal } = useAppContext();
   const color = categoryColors[categoryKey(goal.category)] || categoryColors.other || "#6b7280";
+  const goalTypeLabel = goal.goalType === "long-term" ? "Long-Term" : "Daily";
 
   return (
     <article
@@ -22,9 +23,9 @@ export default function ScheduledGoalCard({ goal, onEdit }) {
           type="checkbox"
         />
         <div className="min-w-0 flex-1">
-          <h3 className={`font-black text-zinc-950 ${goal.completed ? "line-through" : ""}`}>{goal.title}</h3>
+          <h3 className={`font-black text-zinc-950 ${goal.completed ? "sketch-strike text-zinc-500" : ""}`}>{goal.title}</h3>
           <p className="mt-1 text-xs font-black uppercase text-zinc-500">
-            {goal.startTime} - {goal.endTime} - {goal.category} - {goal.difficulty || "easy"}
+            {goal.startTime} - {goal.endTime} - {goalTypeLabel} - {goal.category} - {goal.difficulty || "easy"}
           </p>
           <span className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase text-white" style={{ backgroundColor: color }}>
             {goal.category || "Other"}

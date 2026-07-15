@@ -1,11 +1,72 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAppContext } from "../../app/AppProvider.jsx";
 import { getPandaMoodImage, pandaMoods } from "../../data/pandaMoods.js";
+import PandaTutorial from "../../features/home/components/PandaTutorial.jsx";
 import { xpForNextLevel } from "../../features/panda/utils/pandaLogic.js";
+
+function PandaCareGuideModal({ onClose, open, returnFocusRef }) {
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    function closeOnEscape(event) {
+      if (event.key === "Escape") onClose();
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+      returnFocusRef.current?.focus();
+    };
+  }, [onClose, open, returnFocusRef]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto bg-white/35 p-3 backdrop-blur-md sm:p-6"
+      onClick={onClose}
+      role="presentation"
+    >
+      <section
+        aria-labelledby="panda-care-guide-title"
+        aria-modal="true"
+        className="animate-modal-in my-6 max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/80 bg-white/95 shadow-2xl shadow-zinc-200/70"
+        onClick={(event) => event.stopPropagation()}
+        ref={panelRef}
+        role="dialog"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-emerald-50 p-5">
+          <div>
+            <p className="text-xs font-black uppercase text-pink-500">Panda Care Guide</p>
+            <h2 className="text-2xl font-black text-zinc-950" id="panda-care-guide-title">How to Raise Your Panda</h2>
+          </div>
+          <button
+            aria-label="Close Panda Care Guide"
+            className="grid size-10 place-items-center rounded-full bg-emerald-50 font-black text-zinc-700"
+            onClick={onClose}
+            type="button"
+          >
+            X
+          </button>
+        </div>
+        <div className="max-h-[78vh] overflow-y-auto p-5">
+          <PandaTutorial compact />
+        </div>
+      </section>
+    </div>
+  );
+}
 
 export default function Navbar({ drawerOpen, onOpenDrawer }) {
   const { activePage, authSession, logout, pandaStats, setActivePage } = useAppContext();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const guideButtonRef = useRef(null);
   const profileRef = useRef(null);
   const nextLevelXp = xpForNextLevel(pandaStats.level);
   const xpPercent = Math.min(100, Math.round((pandaStats.xp / nextLevelXp) * 100));
@@ -60,8 +121,9 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/70 bg-white/75 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
+    <>
+      <header className="sticky top-0 z-40 border-b border-white/70 bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
         <button
           aria-controls="main-navigation-drawer"
           aria-expanded={drawerOpen}
@@ -126,6 +188,16 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
           </span>
         </div>
 
+        <button
+          className="inline-flex rounded-full border border-pink-100 bg-pink-50 px-3 py-2 text-xs font-black text-pink-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-pink-100 focus:outline-none focus:ring-4 focus:ring-pink-200 sm:px-4 sm:text-sm"
+          onClick={() => setGuideOpen(true)}
+          ref={guideButtonRef}
+          type="button"
+        >
+          <span className="hidden sm:inline">Panda Care Guide</span>
+          <span className="sm:hidden">Guide</span>
+        </button>
+
         <div className="relative" ref={profileRef}>
           <button
             aria-expanded={profileOpen}
@@ -188,7 +260,9 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
             </div>
           )}
         </div>
-      </div>
-    </header>
+        </div>
+      </header>
+      <PandaCareGuideModal onClose={() => setGuideOpen(false)} open={guideOpen} returnFocusRef={guideButtonRef} />
+    </>
   );
 }

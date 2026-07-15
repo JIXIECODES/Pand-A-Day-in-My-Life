@@ -16,18 +16,22 @@ export default function GoalItem({ date, goal }) {
     editClassicGoal,
     editGoal,
     editLongTermGoal,
+    editScheduledGoal,
     removeClassicGoal,
     removeGoal,
     removeLongTermGoal,
+    removeScheduledGoal,
     setTimerGoal,
     toggleClassicGoal,
     toggleGoal,
     toggleLongTermGoal,
+    toggleScheduledGoal,
   } = useAppContext();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => goalToForm(goal));
   const isClassic = goal.type === "classic";
   const isLongTerm = goal.type === "longTerm";
+  const isScheduled = goal.type === "scheduled";
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -38,7 +42,9 @@ export default function GoalItem({ date, goal }) {
     event.preventDefault();
     if (!form.title.trim()) return;
 
-    if (isClassic) {
+    if (isScheduled) {
+      editScheduledGoal(goal.id, form);
+    } else if (isClassic) {
       editClassicGoal(goal.id, form);
     } else if (isLongTerm) {
       editLongTermGoal(goal.id, form);
@@ -106,6 +112,7 @@ export default function GoalItem({ date, goal }) {
           onChange={() => {
             if (isClassic) toggleClassicGoal(goal.id);
             else if (isLongTerm) toggleLongTermGoal(goal.id);
+            else if (isScheduled) toggleScheduledGoal(goal.id);
             else toggleGoal(date, goal.id);
           }}
           type="checkbox"
@@ -113,9 +120,9 @@ export default function GoalItem({ date, goal }) {
         <div className="min-w-0 flex-1">
           <h3 className={`font-black text-zinc-900 ${goal.completed ? "line-through" : ""}`}>{goal.title}</h3>
           {goal.description && <p className="mt-1 text-sm font-semibold text-zinc-600">{goal.description}</p>}
-          {(isClassic || isLongTerm) && (
+          {(isClassic || isLongTerm || isScheduled) && (
             <p className="mt-2 text-xs font-black uppercase text-zinc-400">
-              Created {new Date(goal.createdAt).toLocaleDateString()}
+              {goal.linkedLabel || "Created"} {goal.createdAt ? new Date(goal.createdAt).toLocaleDateString() : ""}
             </p>
           )}
           <div className="mt-2 flex flex-wrap gap-2 text-xs font-black uppercase">
@@ -129,12 +136,13 @@ export default function GoalItem({ date, goal }) {
         <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setEditing(true)} type="button">
           Edit
         </button>
-        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal(isClassic || isLongTerm ? goal : { ...goal, date })} type="button">
+        <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700" onClick={() => setTimerGoal(isClassic || isLongTerm || isScheduled ? goal : { ...goal, date })} type="button">
           Focus
         </button>
         <button className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700" onClick={() => {
           if (isClassic) removeClassicGoal(goal.id);
           else if (isLongTerm) removeLongTermGoal(goal.id);
+          else if (isScheduled) removeScheduledGoal(goal.id);
           else removeGoal(date, goal.id);
         }} type="button">
           Delete

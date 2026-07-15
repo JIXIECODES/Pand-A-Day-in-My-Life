@@ -84,7 +84,7 @@ export default function Settings() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-black text-zinc-950">Category colors</h2>
-                <p className="mt-1 text-sm font-semibold text-zinc-500">Choose how time-blocked goals appear in the Planning calendar.</p>
+                <p className="mt-1 text-sm font-semibold text-zinc-500">Choose how time-blocked goals appear in Calendar and Goals.</p>
               </div>
               <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-700 shadow-sm" onClick={resetCategoryColors} type="button">
                 Reset category colors
