@@ -5,6 +5,7 @@ export const DEFAULT_PANDA_STATS = {
   xp: 0,
   level: 1,
   streak: 0,
+  streakDates: [],
   completedGoals: 0,
   hardGoals: 0,
   deepGoals: 0,

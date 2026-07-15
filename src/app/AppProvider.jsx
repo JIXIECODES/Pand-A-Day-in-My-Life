@@ -80,8 +80,31 @@ function normalizeJournalEntries(entries = {}) {
   );
 }
 
-function deriveStreak(goalsByDate) {
-  return Object.entries(goalsByDate).filter(([, goals]) => goals.some((goal) => goal.completed)).length;
+function dateKeyFromValue(value) {
+  if (!value) return todayKey();
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : todayKey();
+}
+
+function deriveStreak(goalsByDate, scheduledGoals, classicGoals, longTermGoals, existingDates = []) {
+  const streakDates = new Set(Array.isArray(existingDates) ? existingDates : []);
+
+  Object.entries(goalsByDate || {}).forEach(([date, goals]) => {
+    if ((goals || []).some((goal) => goal.completed)) streakDates.add(date);
+  });
+
+  (scheduledGoals || []).forEach((goal) => {
+    if (goal.completed) streakDates.add(goal.date || dateKeyFromValue(goal.completedAt || goal.createdAt));
+  });
+
+  [...(classicGoals || []), ...(longTermGoals || [])].forEach((goal) => {
+    if (goal.completed) streakDates.add(dateKeyFromValue(goal.completedAt || goal.createdAt));
+  });
+
+  return {
+    streak: streakDates.size,
+    streakDates: [...streakDates].sort(),
+  };
 }
 
 function unlockByRequirements(items, stats, currentIds) {
@@ -146,8 +169,21 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   );
   const [toast, setToast] = useState("");
 
-  function persistStats(nextStats, goalsSnapshot = goalsByDate) {
-    const statsWithStreak = { ...nextStats, streak: deriveStreak(goalsSnapshot) };
+  function persistStats(
+    nextStats,
+    goalsSnapshot = goalsByDate,
+    scheduledSnapshot = scheduledGoals,
+    classicSnapshot = classicGoals,
+    longTermSnapshot = longTermGoals,
+  ) {
+    const streakState = deriveStreak(
+      goalsSnapshot,
+      scheduledSnapshot,
+      classicSnapshot,
+      longTermSnapshot,
+      nextStats.streakDates || pandaStats.streakDates,
+    );
+    const statsWithStreak = { ...nextStats, ...streakState };
     const outfitResult = unlockByRequirements(outfits, statsWithStreak, unlockedOutfits);
     const decorationResult = unlockByRequirements(decorations, statsWithStreak, unlockedDecorations);
     const achievementResult = evaluateAchievements(
@@ -285,16 +321,17 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     const nextClassicGoals = updateClassicGoal(id, {
       completed: !goal.completed,
       xpAwarded: goal.xpAwarded || !goal.completed,
+      completedAt: !goal.completed ? (goal.completedAt || new Date().toISOString()) : goal.completedAt,
     });
     setClassicGoals(nextClassicGoals);
 
     if (completingForFirstTime) {
-      const nextStats = persistStats(completeGoalStats(pandaStats, goal, false));
+      const nextStats = persistStats(completeGoalStats(pandaStats, goal, false), goalsByDate, scheduledGoals, nextClassicGoals, longTermGoals);
       completeDailyTask("complete-goal", nextStats);
     } else if (!goal.completed) {
-      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, scheduledGoals, nextClassicGoals, longTermGoals);
     } else {
-      persistStats(withMood(pandaStats, "idle", "Daily goal unchecked"));
+      persistStats(withMood(pandaStats, "idle", "Daily goal unchecked"), goalsByDate, scheduledGoals, nextClassicGoals, longTermGoals);
     }
   }
 
@@ -311,16 +348,17 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     const nextLongTermGoals = updateLongTermGoal(id, {
       completed: !goal.completed,
       xpAwarded: goal.xpAwarded || !goal.completed,
+      completedAt: !goal.completed ? (goal.completedAt || new Date().toISOString()) : goal.completedAt,
     });
     setLongTermGoals(nextLongTermGoals);
 
     if (completingForFirstTime) {
-      const nextStats = persistStats(completeGoalStats(pandaStats, goal, false));
+      const nextStats = persistStats(completeGoalStats(pandaStats, goal, false), goalsByDate, scheduledGoals, classicGoals, nextLongTermGoals);
       completeDailyTask("complete-goal", nextStats);
     } else if (!goal.completed) {
-      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, scheduledGoals, classicGoals, nextLongTermGoals);
     } else {
-      persistStats(withMood(pandaStats, "idle", "Long-term goal unchecked"));
+      persistStats(withMood(pandaStats, "idle", "Long-term goal unchecked"), goalsByDate, scheduledGoals, classicGoals, nextLongTermGoals);
     }
   }
 
@@ -363,35 +401,40 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     const nextScheduledGoals = updateScheduledGoal(id, {
       completed: !goal.completed,
       xpAwarded: goal.xpAwarded || !goal.completed,
+      completedAt: !goal.completed ? (goal.completedAt || new Date().toISOString()) : goal.completedAt,
     });
     setScheduledGoals(nextScheduledGoals);
 
     if (completingForFirstTime) {
-      const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false), goalsByDate, nextScheduledGoals);
       completeDailyTask("complete-goal", nextStats);
     } else if (!goal.completed) {
-      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, nextScheduledGoals);
     } else {
-      persistStats(withMood(pandaStats, "idle", "Scheduled goal unchecked"));
+      persistStats(withMood(pandaStats, "idle", "Scheduled goal unchecked"), goalsByDate, nextScheduledGoals);
     }
   }
 
   function completeScheduledGoal(id) {
     const goal = scheduledGoals.find((item) => item.id === id);
-    if (!goal || goal.completed) return;
+    if (!goal) return;
 
-    const completingForFirstTime = !goal.xpAwarded;
+    const completing = !goal.completed;
+    const completingForFirstTime = completing && !goal.xpAwarded;
     const nextScheduledGoals = updateScheduledGoal(id, {
-      completed: true,
-      xpAwarded: true,
+      completed: completing,
+      xpAwarded: goal.xpAwarded || completing,
+      completedAt: completing ? (goal.completedAt || new Date().toISOString()) : goal.completedAt,
     });
     setScheduledGoals(nextScheduledGoals);
 
     if (completingForFirstTime) {
-      const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false));
+      const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false), goalsByDate, nextScheduledGoals);
       completeDailyTask("complete-goal", nextStats);
+    } else if (completing) {
+      persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, nextScheduledGoals);
     } else {
-      persistStats(celebrateAlreadyAwardedGoal(pandaStats));
+      persistStats(withMood(pandaStats, "idle", "Scheduled goal unchecked"), goalsByDate, nextScheduledGoals);
     }
   }
 
@@ -414,6 +457,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     updateGoal(date, id, {
       completed: !goal.completed,
       xpAwarded: goal.xpAwarded || !goal.completed,
+      completedAt: !goal.completed ? (goal.completedAt || new Date().toISOString()) : goal.completedAt,
     });
     const nextGoals = getAllGoals();
     setGoalsByDate(nextGoals);
@@ -476,28 +520,44 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
 
     if (timerGoal?.type === "scheduled" && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
-      const nextScheduledGoals = updateScheduledGoal(timerGoal.id, { completed: true, xpAwarded: true });
+      const nextScheduledGoals = updateScheduledGoal(timerGoal.id, {
+        completed: true,
+        xpAwarded: true,
+        completedAt: timerGoal.completedAt || new Date().toISOString(),
+      });
       setScheduledGoals(nextScheduledGoals);
       nextStats = firstAward ? completeGoalStats(nextStats, { ...timerGoal, difficulty: timerGoal.difficulty || "medium" }, false) : celebrateAlreadyAwardedGoal(nextStats);
       completedGoalForTask = firstAward;
       setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
     } else if (timerGoal?.type === "classic" && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
-      const nextClassicGoals = updateClassicGoal(timerGoal.id, { completed: true, xpAwarded: true });
+      const nextClassicGoals = updateClassicGoal(timerGoal.id, {
+        completed: true,
+        xpAwarded: true,
+        completedAt: timerGoal.completedAt || new Date().toISOString(),
+      });
       setClassicGoals(nextClassicGoals);
       nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
       completedGoalForTask = firstAward;
       setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
     } else if (timerGoal?.type === "longTerm" && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
-      const nextLongTermGoals = updateLongTermGoal(timerGoal.id, { completed: true, xpAwarded: true });
+      const nextLongTermGoals = updateLongTermGoal(timerGoal.id, {
+        completed: true,
+        xpAwarded: true,
+        completedAt: timerGoal.completedAt || new Date().toISOString(),
+      });
       setLongTermGoals(nextLongTermGoals);
       nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
       completedGoalForTask = firstAward;
       setTimerGoal({ ...timerGoal, completed: true, xpAwarded: true });
     } else if (timerGoal?.date && timerGoal?.id && !timerGoal.completed) {
       const firstAward = !timerGoal.xpAwarded;
-      updateGoal(timerGoal.date, timerGoal.id, { completed: true, xpAwarded: true });
+      updateGoal(timerGoal.date, timerGoal.id, {
+        completed: true,
+        xpAwarded: true,
+        completedAt: timerGoal.completedAt || new Date().toISOString(),
+      });
       nextGoals = getAllGoals();
       setGoalsByDate(nextGoals);
       nextStats = firstAward ? completeGoalStats(nextStats, timerGoal, false) : celebrateAlreadyAwardedGoal(nextStats);
@@ -505,7 +565,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       setTimerGoal({ ...timerGoal, completed: true });
     }
 
-    const savedStats = persistStats(nextStats, nextGoals);
+    const savedStats = persistStats(nextStats, nextGoals, getScheduledGoals(), getClassicGoals(), getLongTermGoals());
     if (completedGoalForTask) {
       completeDailyTask("complete-goal", savedStats, nextGoals);
     }

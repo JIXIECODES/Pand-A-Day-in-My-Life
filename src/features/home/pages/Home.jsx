@@ -52,14 +52,13 @@ function TodayGoalsBoard({ goals, onCompleteGoal, onOpenCalendar }) {
                   <span className="absolute left-1/2 top-0 h-3 w-12 -translate-x-1/2 -translate-y-1/2 rotate-1 rounded-sm bg-amber-200/80" aria-hidden="true" />
                   <div className="flex items-start gap-3">
                     <button
-                      aria-label={goal.completed ? `${goal.title} complete` : `Mark ${goal.title} complete`}
+                      aria-label={goal.completed ? `Mark ${goal.title} incomplete` : `Mark ${goal.title} complete`}
                       className={[
                         "mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-emerald-100",
                         goal.completed
                           ? "border-emerald-300 bg-emerald-500 text-white"
                           : "border-emerald-100 bg-emerald-50 text-emerald-700 hover:-translate-y-0.5 hover:bg-emerald-100",
                       ].join(" ")}
-                      disabled={goal.completed}
                       onClick={() => onCompleteGoal(goal.id)}
                       type="button"
                     >
