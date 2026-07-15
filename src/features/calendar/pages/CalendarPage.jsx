@@ -130,12 +130,17 @@ export default function CalendarPage() {
     setCalendarHelpOpen(false);
   }
 
+  const mainClass = activeTab === "calendar"
+    ? "mx-auto flex h-[calc(100vh-5.5rem)] h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6"
+    : "mx-auto flex min-h-[calc(100vh-5.5rem)] min-h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6";
   const contentGridClass = activeTab === "calendar"
-    ? "grid min-h-0 items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
+    ? "grid min-h-0 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
     : "grid min-h-0 items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]";
+  const contentOverflowClass = activeTab === "calendar" ? "overflow-hidden" : "overflow-visible";
+  const asideClass = activeTab === "calendar" ? "flex min-h-0 min-w-0 flex-col overflow-hidden" : "min-h-0 min-w-0";
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-5.5rem)] min-h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6">
+    <main className={mainClass}>
       <section className="shrink-0 rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
         <p className="text-sm font-black text-pink-500">Calendar and Goals</p>
         <div className="mt-1 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -164,7 +169,7 @@ export default function CalendarPage() {
         </div>
       </section>
 
-      <section className={`${contentGridClass} flex-1 overflow-visible lg:overflow-hidden`}>
+      <section className={`${contentGridClass} flex-1 ${contentOverflowClass}`}>
         <div className="min-h-0 min-w-0 lg:overflow-hidden">
           {activeTab === "daily" && <HomeGoals kind="daily" showComposer={false} />}
 
@@ -184,7 +189,7 @@ export default function CalendarPage() {
           )}
         </div>
 
-        <aside className="min-h-0 min-w-0 lg:overflow-y-auto">
+        <aside className={asideClass}>
           {activeTab !== "calendar" && (
             <div className="grid gap-4">
               <div className={`rounded-[1.5rem] p-4 ${activeContext.accent}`}>
@@ -202,15 +207,18 @@ export default function CalendarPage() {
           )}
 
           {activeTab === "calendar" && (
-            <div className="grid gap-3">
-              <button
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-                onClick={() => setPlannerOpen(true)}
-                type="button"
-              >
-                Add or Edit Time Block
-              </button>
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+              <div className="shrink-0">
+                <button
+                  className="w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                  onClick={() => setPlannerOpen(true)}
+                  type="button"
+                >
+                  Add or Edit Time Block
+                </button>
+              </div>
               <DaySchedule
+                className="min-h-0 flex-1 overflow-hidden"
                 date={selectedDate}
                 onEditGoal={() => setPlannerOpen(true)}
                 showForm={false}
