@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import PandaCoach from "../../coach/components/PandaCoach.jsx";
 import FocusTimer from "../../goals/components/FocusTimer.jsx";
 import PandaCompanion from "../../panda/components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../../panda/components/PandaMoodDisplay.jsx";
@@ -111,7 +112,7 @@ function TodayGoalsBoard({ goals, onCompleteGoal, onOpenCalendar }) {
 }
 
 export default function Home() {
-  const { completeScheduledGoal, scheduledGoals, setActivePage } = useAppContext();
+  const { classicGoals, completeScheduledGoal, longTermGoals, scheduledGoals, setActivePage } = useAppContext();
   const todaysGoals = useMemo(
     () => scheduledGoals.filter((goal) => goal.date === todayKey()).sort((a, b) => a.startTime.localeCompare(b.startTime)),
     [scheduledGoals],
@@ -139,6 +140,8 @@ export default function Home() {
           <FocusTimer />
         </div>
       </section>
+
+      <PandaCoach dailyGoals={classicGoals} longTermGoals={longTermGoals} todaysGoals={todaysGoals} />
     </main>
   );
 }
