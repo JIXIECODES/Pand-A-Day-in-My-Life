@@ -19,6 +19,9 @@ import {
 } from "../features/panda/utils/pandaLogic.js";
 import { completeMinimumWinStats } from "../features/goals/utils/minimumWinRewards.js";
 import { canClaimDailyReward, claimDailyReward } from "../features/rewards/utils/rewardLogic.js";
+import { getLocalDateKey } from "../features/resilience/utils/localDate.js";
+import { processQualifyingActivity } from "../features/resilience/utils/resilienceTracking.js";
+import { getResilienceState, saveResilienceState } from "../features/resilience/services/resilienceStorage.js";
 import {
   DEFAULT_CATEGORY_COLORS,
   deleteClassicGoal,
@@ -175,7 +178,18 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     normalizeOutfitId(getData(STORAGE_KEYS.equippedOutfit, "")),
   );
   const [toast, setToast] = useState("");
+  const [resilienceState, setResilienceState] = useState(() => getResilienceState());
 
+  function recordQualifyingActivity() {
+    const activityDate = getLocalDateKey();
+    const result = processQualifyingActivity(getResilienceState(activityDate), activityDate);
+    const savedState = saveResilienceState(result.state, activityDate);
+    setResilienceState(savedState);
+    if (result.returnAwarded) {
+      setToast("Welcome back. Resilience Return +1.");
+    }
+    return result;
+  }
   function persistStats(
     nextStats,
     goalsSnapshot = goalsByDate,
@@ -336,6 +350,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     if (completingForFirstTime) {
       const nextStats = persistStats(completeGoalStats(pandaStats, goal, false), goalsByDate, scheduledGoals, nextClassicGoals, longTermGoals);
       completeDailyTask("complete-goal", nextStats);
+      recordQualifyingActivity();
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, scheduledGoals, nextClassicGoals, longTermGoals);
     } else {
@@ -363,6 +378,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     if (completingForFirstTime) {
       const nextStats = persistStats(completeGoalStats(pandaStats, goal, false), goalsByDate, scheduledGoals, classicGoals, nextLongTermGoals);
       completeDailyTask("complete-goal", nextStats);
+      recordQualifyingActivity();
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, scheduledGoals, classicGoals, nextLongTermGoals);
     } else {
@@ -454,7 +470,10 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     }
 
     persistStats(reward.stats, nextGoalsSnapshot, nextScheduledSnapshot, nextClassicSnapshot, nextLongTermSnapshot);
-    setToast(reward.xp > 0 ? `Minimum progress completed. +${reward.xp} XP` : "Minimum progress completed. Your full goal is still available.");
+    const resilienceResult = !currentGoal.minimumWinRewardGranted ? recordQualifyingActivity() : { returnAwarded: false };
+    if (!resilienceResult.returnAwarded) {
+      setToast(reward.xp > 0 ? `Minimum progress completed. +${reward.xp} XP` : "Minimum progress completed. Your full goal is still available.");
+    }
   }
 
   function findGoalForCoach(goalRef = {}) {
@@ -600,6 +619,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     if (completingForFirstTime) {
       const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false), goalsByDate, nextScheduledGoals);
       completeDailyTask("complete-goal", nextStats);
+      recordQualifyingActivity();
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, nextScheduledGoals);
     } else {
@@ -623,6 +643,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     if (completingForFirstTime) {
       const nextStats = persistStats(completeGoalStats(pandaStats, { ...goal, difficulty: goal.difficulty || "medium" }, false), goalsByDate, nextScheduledGoals);
       completeDailyTask("complete-goal", nextStats);
+      recordQualifyingActivity();
     } else if (completing) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), goalsByDate, nextScheduledGoals);
     } else {
@@ -658,6 +679,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       const allDone = (nextGoals[date] || []).length > 0 && nextGoals[date].every((item) => item.completed);
       const nextStats = persistStats(completeGoalStats(pandaStats, goal, allDone), nextGoals);
       completeDailyTask("complete-goal", nextStats, nextGoals);
+      recordQualifyingActivity();
     } else if (!goal.completed) {
       persistStats(celebrateAlreadyAwardedGoal(pandaStats), nextGoals);
     } else {
@@ -761,7 +783,10 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     if (completedGoalForTask) {
       completeDailyTask("complete-goal", savedStats, nextGoals);
     }
-    setToast(timerGoal ? `Focus finished: ${timerGoal.title} is complete` : "Focus timer complete");
+    const resilienceResult = recordQualifyingActivity();
+    if (!resilienceResult.returnAwarded) {
+      setToast(timerGoal ? `Focus finished: ${timerGoal.title} is complete` : "Focus timer complete");
+    }
   }
 
   function claimReward() {
@@ -850,6 +875,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       removeLongTermGoal,
       resetAppData,
       resetCategoryColors,
+      resilienceState,
       logout: onLogout,
       removeScheduledGoal,
       saveJournalEntry,
@@ -891,6 +917,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       longTermGoals,
       pandaStats,
       planningTab,
+      resilienceState,
       scheduledGoals,
       selectedDate,
       settings,

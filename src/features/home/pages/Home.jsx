@@ -7,6 +7,7 @@ import FocusTimer from "../../goals/components/FocusTimer.jsx";
 import MinimumWinSection from "../../goals/components/MinimumWinSection.jsx";
 import PandaCompanion from "../../panda/components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../../panda/components/PandaMoodDisplay.jsx";
+import ResilienceReturnsCard from "../../resilience/components/ResilienceReturnsCard.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { greetingForNow, todayKey } from "../../calendar/utils/dateUtils.js";
 
@@ -164,7 +165,7 @@ function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onCompleteMinimumWin
 }
 
 export default function Home() {
-  const { classicGoals, completeMinimumWin, completeScheduledGoal, longTermGoals, scheduledGoals, setActivePage } = useAppContext();
+  const { classicGoals, completeMinimumWin, completeScheduledGoal, longTermGoals, resilienceState, scheduledGoals, setActivePage } = useAppContext();
   const [dailyCapacity, setDailyCapacity] = useState(() => getStoredDailyCapacity().capacity);
   const todaysGoals = useMemo(
     () => scheduledGoals.filter((goal) => goal.date === todayKey()).sort((a, b) => a.startTime.localeCompare(b.startTime)),
@@ -182,7 +183,13 @@ export default function Home() {
       <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.9fr)]">
         <div className="grid gap-5">
           <PandaDisplayFrame />
-          <PandaMoodDisplay />
+          <div className="grid gap-5 sm:grid-cols-2">
+
+            <PandaMoodDisplay />
+
+            <ResilienceReturnsCard resilienceState={resilienceState} />
+
+          </div>
           <DailyCapacityCheckIn onCapacityChange={updateDailyCapacity} />
         </div>
 
