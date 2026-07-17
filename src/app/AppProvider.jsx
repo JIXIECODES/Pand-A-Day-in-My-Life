@@ -17,6 +17,7 @@ import {
   journalStats,
   withMood,
 } from "../features/panda/utils/pandaLogic.js";
+import { completeMinimumWinStats } from "../features/goals/utils/minimumWinRewards.js";
 import { canClaimDailyReward, claimDailyReward } from "../features/rewards/utils/rewardLogic.js";
 import {
   DEFAULT_CATEGORY_COLORS,
@@ -80,6 +81,9 @@ function normalizeJournalEntries(entries = {}) {
   );
 }
 
+function minimumWinText(goal = {}) {
+  return typeof goal.minimumWin === "string" ? goal.minimumWin.trim() : "";
+}
 function dateKeyFromValue(value) {
   if (!value) return todayKey();
   const parsed = dayjs(value);
@@ -261,6 +265,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       saveScheduledGoal({
         title: goal.title,
         description: goal.description || "",
+        minimumWin: goal.minimumWin || "",
         date,
         startTime: goal.startTime,
         endTime: goal.endTime,
@@ -360,6 +365,93 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     } else {
       persistStats(withMood(pandaStats, "idle", "Long-term goal unchecked"), goalsByDate, scheduledGoals, classicGoals, nextLongTermGoals);
     }
+  }
+
+
+  function completeMinimumWin(goal) {
+    if (!goal?.id) return;
+
+    if (!minimumWinText(goal)) {
+      setToast("Add a Minimum Win before recording partial progress.");
+      return;
+    }
+
+    if (goal.completed) {
+      setToast("This goal is already complete.");
+      return;
+    }
+
+    if (goal.minimumWinCompleted) {
+      setToast("Minimum progress was already completed.");
+      return;
+    }
+
+    const confirmed = window.confirm("Complete this Minimum Win?\n\nThis records partial progress. The full goal will remain unfinished.");
+    if (!confirmed) return;
+
+    const goalDate = goal.date;
+    let currentGoal = null;
+    let nextGoalsSnapshot = goalsByDate;
+    let nextScheduledSnapshot = scheduledGoals;
+    let nextClassicSnapshot = classicGoals;
+    let nextLongTermSnapshot = longTermGoals;
+
+    if (goal.type === "classic") {
+      currentGoal = getClassicGoals().find((item) => item.id === goal.id);
+    } else if (goal.type === "longTerm") {
+      currentGoal = getLongTermGoals().find((item) => item.id === goal.id);
+    } else if (goal.type === "scheduled") {
+      currentGoal = getScheduledGoals().find((item) => item.id === goal.id);
+    } else if (goalDate) {
+      currentGoal = (getAllGoals()[goalDate] || []).find((item) => item.id === goal.id);
+    }
+
+    if (!currentGoal) {
+      setToast("That goal was already removed.");
+      return;
+    }
+
+    if (!minimumWinText(currentGoal)) {
+      setToast("Add a Minimum Win before recording partial progress.");
+      return;
+    }
+
+    if (currentGoal.completed) {
+      setToast("This goal is already complete.");
+      return;
+    }
+
+    if (currentGoal.minimumWinCompleted) {
+      setToast("Minimum progress was already completed.");
+      return;
+    }
+
+    const reward = currentGoal.minimumWinRewardGranted
+      ? { stats: pandaStats, xp: 0 }
+      : completeMinimumWinStats(pandaStats, currentGoal);
+    const updates = {
+      minimumWinCompleted: true,
+      minimumWinCompletedAt: new Date().toISOString(),
+      minimumWinRewardGranted: true,
+    };
+
+    if (goal.type === "classic") {
+      nextClassicSnapshot = updateClassicGoal(goal.id, updates);
+      setClassicGoals(nextClassicSnapshot);
+    } else if (goal.type === "longTerm") {
+      nextLongTermSnapshot = updateLongTermGoal(goal.id, updates);
+      setLongTermGoals(nextLongTermSnapshot);
+    } else if (goal.type === "scheduled") {
+      nextScheduledSnapshot = updateScheduledGoal(goal.id, updates);
+      setScheduledGoals(nextScheduledSnapshot);
+    } else if (goalDate) {
+      updateGoal(goalDate, goal.id, updates);
+      nextGoalsSnapshot = getAllGoals();
+      setGoalsByDate(nextGoalsSnapshot);
+    }
+
+    persistStats(reward.stats, nextGoalsSnapshot, nextScheduledSnapshot, nextClassicSnapshot, nextLongTermSnapshot);
+    setToast(reward.xp > 0 ? `Minimum progress completed. +${reward.xp} XP` : "Minimum progress completed. Your full goal is still available.");
   }
 
   function removeClassicGoal(id) {
@@ -634,6 +726,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
       completeScheduledGoal,
+      completeMinimumWin,
       clearToast: () => setToast(""),
       currentMonth,
       dailyRewards,

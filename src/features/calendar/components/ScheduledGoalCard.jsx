@@ -1,9 +1,10 @@
 import React from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { categoryKey } from "../../../shared/utils/storage.js";
+import MinimumWinSection from "../../goals/components/MinimumWinSection.jsx";
 
 export default function ScheduledGoalCard({ goal, onEdit }) {
-  const { categoryColors, removeScheduledGoal, toggleScheduledGoal } = useAppContext();
+  const { categoryColors, completeMinimumWin, removeScheduledGoal, toggleScheduledGoal } = useAppContext();
   const color = categoryColors[categoryKey(goal.category)] || categoryColors.other || "#6b7280";
   const goalTypeLabel = goal.goalType === "long-term" ? "Long-Term" : "Daily";
 
@@ -33,6 +34,7 @@ export default function ScheduledGoalCard({ goal, onEdit }) {
           {goal.description && <p className="mt-2 text-sm font-semibold text-zinc-600">{goal.description}</p>}
         </div>
       </div>
+      <MinimumWinSection goal={goal} onComplete={completeMinimumWin} />
       <div className="mt-3 flex gap-2">
         <button className="rounded-full bg-white px-3 py-2 text-xs font-black text-zinc-700" onClick={() => onEdit(goal)} type="button">
           Edit

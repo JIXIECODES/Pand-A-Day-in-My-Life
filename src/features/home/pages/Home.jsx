@@ -4,6 +4,7 @@ import { getStoredDailyCapacity } from "../../capacity/services/capacityStorage.
 import { getGoalEmphasis, splitGoalsForCapacity } from "../../capacity/utils/capacityRecommendations.js";
 import PandaCoach from "../../coach/components/PandaCoach.jsx";
 import FocusTimer from "../../goals/components/FocusTimer.jsx";
+import MinimumWinSection from "../../goals/components/MinimumWinSection.jsx";
 import PandaCompanion from "../../panda/components/PandaCompanion.jsx";
 import PandaMoodDisplay from "../../panda/components/PandaMoodDisplay.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
@@ -40,7 +41,7 @@ const emphasisToneClasses = {
   amber: "bg-amber-50 text-amber-800 ring-1 ring-amber-100",
 };
 
-function GoalCard({ goal, incompleteIndex, capacity, onCompleteGoal }) {
+function GoalCard({ goal, incompleteIndex, capacity, onCompleteGoal, onCompleteMinimumWin }) {
   const emphasis = getGoalEmphasis(goal, incompleteIndex, capacity);
 
   return (
@@ -87,11 +88,12 @@ function GoalCard({ goal, incompleteIndex, capacity, onCompleteGoal }) {
           </p>
         </div>
       </div>
+      <MinimumWinSection goal={goal} onComplete={onCompleteMinimumWin} />
     </article>
   );
 }
 
-function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onOpenCalendar }) {
+function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onCompleteMinimumWin, onOpenCalendar }) {
   const [showLater, setShowLater] = useState(false);
   const incompleteGoals = goals.filter((goal) => !goal.completed);
   const incompleteIndexById = new Map(incompleteGoals.map((goal, index) => [goal.id, index]));
@@ -121,6 +123,7 @@ function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onOpenCalendar }) {
                   incompleteIndex={incompleteIndexById.get(goal.id)}
                   key={goal.id}
                   onCompleteGoal={onCompleteGoal}
+                  onCompleteMinimumWin={onCompleteMinimumWin}
                 />
               ))
             ) : (
@@ -161,7 +164,7 @@ function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onOpenCalendar }) {
 }
 
 export default function Home() {
-  const { classicGoals, completeScheduledGoal, longTermGoals, scheduledGoals, setActivePage } = useAppContext();
+  const { classicGoals, completeMinimumWin, completeScheduledGoal, longTermGoals, scheduledGoals, setActivePage } = useAppContext();
   const [dailyCapacity, setDailyCapacity] = useState(() => getStoredDailyCapacity().capacity);
   const todaysGoals = useMemo(
     () => scheduledGoals.filter((goal) => goal.date === todayKey()).sort((a, b) => a.startTime.localeCompare(b.startTime)),
@@ -188,6 +191,7 @@ export default function Home() {
             capacity={dailyCapacity}
             goals={todaysGoals}
             onCompleteGoal={completeScheduledGoal}
+            onCompleteMinimumWin={completeMinimumWin}
             onOpenCalendar={() => setActivePage("calendar", { planningTab: "calendar" })}
           />
           <FocusTimer />

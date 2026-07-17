@@ -2,10 +2,12 @@ import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { isPastDeadline } from "../../calendar/utils/dateUtils.js";
+import MinimumWinSection from "./MinimumWinSection.jsx";
 
 const emptyForm = {
   title: "",
   description: "",
+  minimumWin: "",
   note: "",
   deadline: "",
   startTime: "",
@@ -17,6 +19,7 @@ const emptyForm = {
 export default function GoalModal({ open, onClose }) {
   const {
     addGoal,
+    completeMinimumWin,
     editGoal,
     goalsByDate,
     removeGoal,
@@ -48,11 +51,19 @@ export default function GoalModal({ open, onClose }) {
     event.preventDefault();
     if (!form.title.trim()) return;
 
+    const cleanedForm = {
+      ...form,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      minimumWin: form.minimumWin.trim(),
+      note: form.note.trim(),
+    };
+
     if (editingId) {
-      editGoal(selectedDate, editingId, form);
+      editGoal(selectedDate, editingId, cleanedForm);
       setEditingId("");
     } else {
-      const saved = addGoal(selectedDate, form);
+      const saved = addGoal(selectedDate, cleanedForm);
       if (window.confirm("Start a focus timer?")) {
         setTimerGoal(saved);
         startFocus(saved);
@@ -67,6 +78,7 @@ export default function GoalModal({ open, onClose }) {
     setForm({
       title: goal.title,
       description: goal.description || "",
+      minimumWin: goal.minimumWin || "",
       note: goal.note || "",
       deadline: goal.deadline || "",
       startTime: goal.startTime || "",
@@ -93,6 +105,7 @@ export default function GoalModal({ open, onClose }) {
           <form className="space-y-3" onSubmit={submitGoal}>
             <input className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-pink-300" name="title" onChange={updateField} placeholder="Goal title" value={form.title} />
             <textarea className="min-h-24 w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none focus:border-pink-300" name="description" onChange={updateField} placeholder="Description" value={form.description} />
+            <input className="w-full rounded-2xl border border-emerald-100 bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-emerald-300" name="minimumWin" onChange={updateField} placeholder="Minimum Win, like review five flashcards" value={form.minimumWin} />
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-black text-zinc-600">
                 Deadline
@@ -147,6 +160,7 @@ export default function GoalModal({ open, onClose }) {
                         <h3 className={`font-black text-zinc-950 ${goal.completed ? "line-through" : ""}`}>{goal.title}</h3>
                         <p className="mt-1 text-xs font-black uppercase text-pink-500">{goal.difficulty || "easy"} goal</p>
                         {goal.description && <p className="mt-2 text-sm font-semibold text-zinc-600">{goal.description}</p>}
+                        <MinimumWinSection goal={{ ...goal, date: selectedDate }} onComplete={completeMinimumWin} />
                         {goal.deadline && <p className="mt-2 text-xs font-black text-zinc-500">Deadline {goal.deadline}</p>}
                         {goal.startTime && goal.endTime && (
                           <p className="mt-2 text-xs font-black text-sky-600">

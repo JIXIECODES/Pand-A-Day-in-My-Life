@@ -5,6 +5,7 @@ import { GOAL_CATEGORIES } from "../../../shared/utils/storage.js";
 const emptyForm = {
   title: "",
   description: "",
+  minimumWin: "",
   startTime: "09:00",
   endTime: "10:00",
   category: "Personal",
@@ -33,6 +34,7 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
       setForm({
         title: editingGoal.title,
         description: editingGoal.description || "",
+        minimumWin: editingGoal.minimumWin || "",
         startTime: editingGoal.startTime,
         endTime: editingGoal.endTime,
         category: editingGoal.category,
@@ -64,11 +66,18 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    const cleanedForm = {
+      ...form,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      minimumWin: form.minimumWin.trim(),
+    };
+
     if (editingGoal) {
-      editScheduledGoal(editingGoal.id, { ...form, date });
+      editScheduledGoal(editingGoal.id, { ...cleanedForm, date });
       onDone();
     } else {
-      addScheduledGoal({ ...form, date, completed: false });
+      addScheduledGoal({ ...cleanedForm, date, completed: false });
       setForm(emptyForm);
     }
     setErrors({});
@@ -93,6 +102,18 @@ export default function GoalBlockForm({ date, editingGoal, onDone }) {
           placeholder="Description or note"
           value={form.description}
         />
+        <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-minimum-win">
+          Minimum Win
+          <input
+            className="mt-1 w-full rounded-2xl border border-emerald-100 bg-zinc-50 px-4 py-3 font-bold outline-none focus:border-emerald-300"
+            id="scheduled-minimum-win"
+            name="minimumWin"
+            onChange={updateField}
+            placeholder="Review five flashcards"
+            value={form.minimumWin}
+          />
+          <span className="mt-1 block text-xs font-bold text-zinc-400">A small version that still counts as progress.</span>
+        </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-black text-zinc-600" htmlFor="scheduled-start-time">
             Start time

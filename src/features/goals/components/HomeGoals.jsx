@@ -6,6 +6,7 @@ import GoalItem from "./GoalItem.jsx";
 const emptyForm = {
   title: "",
   description: "",
+  minimumWin: "",
   category: "Personal",
   difficulty: "easy",
 };
@@ -87,6 +88,19 @@ export function GoalComposer({ kind = "daily", onSaved }) {
             placeholder={kind === "longTerm" ? "Why this goal matters over time" : "What does done look like?"}
             value={form.description}
           />
+        </label>
+
+        <label className="text-sm font-black text-zinc-600" htmlFor={`${kind}-minimum-win`}>
+          Minimum Win
+          <input
+            className="mt-1 w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-emerald-300"
+            id={`${kind}-minimum-win`}
+            name="minimumWin"
+            onChange={updateField}
+            placeholder="Review five flashcards"
+            value={form.minimumWin}
+          />
+          <span className="mt-1 block text-xs font-bold text-zinc-400">A small version that still counts as progress.</span>
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">

@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { GOAL_CATEGORIES } from "../../../shared/utils/storage.js";
+import MinimumWinSection from "./MinimumWinSection.jsx";
 
 function goalToForm(goal) {
   return {
     title: goal.title || "",
     description: goal.description || "",
+    minimumWin: typeof goal.minimumWin === "string" ? goal.minimumWin : "",
     difficulty: goal.difficulty || "easy",
     category: goal.category || "Personal",
   };
@@ -13,6 +15,7 @@ function goalToForm(goal) {
 
 export default function GoalItem({ date, goal }) {
   const {
+    completeMinimumWin,
     editClassicGoal,
     editGoal,
     editLongTermGoal,
@@ -42,14 +45,21 @@ export default function GoalItem({ date, goal }) {
     event.preventDefault();
     if (!form.title.trim()) return;
 
+    const cleanedForm = {
+      ...form,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      minimumWin: form.minimumWin.trim(),
+    };
+
     if (isScheduled) {
-      editScheduledGoal(goal.id, form);
+      editScheduledGoal(goal.id, cleanedForm);
     } else if (isClassic) {
-      editClassicGoal(goal.id, form);
+      editClassicGoal(goal.id, cleanedForm);
     } else if (isLongTerm) {
-      editLongTermGoal(goal.id, form);
+      editLongTermGoal(goal.id, cleanedForm);
     } else {
-      editGoal(date, goal.id, form);
+      editGoal(date, goal.id, cleanedForm);
     }
     setEditing(false);
   }
@@ -72,6 +82,17 @@ export default function GoalItem({ date, goal }) {
             placeholder="Description or note"
             value={form.description}
           />
+          <label className="text-xs font-black uppercase text-zinc-500">
+            Minimum Win
+            <input
+              className="mt-1 w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-bold normal-case outline-none focus:border-emerald-300"
+              name="minimumWin"
+              onChange={updateField}
+              placeholder="Review five flashcards"
+              value={form.minimumWin}
+            />
+            <span className="mt-1 block text-[0.68rem] font-bold normal-case text-zinc-400">A small version that still counts as progress.</span>
+          </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-black uppercase text-zinc-500">
               Difficulty
@@ -130,6 +151,7 @@ export default function GoalItem({ date, goal }) {
             <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-700">{goal.category || "Personal"}</span>
             {goal.xpAwarded && <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">XP earned</span>}
           </div>
+          <MinimumWinSection goal={date ? { ...goal, date } : goal} onComplete={completeMinimumWin} />
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">

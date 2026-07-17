@@ -56,12 +56,26 @@ export function resetAllData() {
   Object.values(STORAGE_KEYS).forEach((key) => clearData(key));
 }
 
+export function normalizeMinimumWinFields(goal = {}) {
+  return {
+    ...goal,
+    minimumWin: typeof goal.minimumWin === "string" ? goal.minimumWin : "",
+    minimumWinCompleted: Boolean(goal.minimumWinCompleted),
+    minimumWinCompletedAt: typeof goal.minimumWinCompletedAt === "string" ? goal.minimumWinCompletedAt : null,
+    minimumWinRewardGranted: Boolean(goal.minimumWinRewardGranted),
+  };
+}
+
+function cleanMinimumWin(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export function getAllGoals() {
   const goals = getData(STORAGE_KEYS.goals, {});
   return Object.fromEntries(
     Object.entries(goals).map(([date, dayGoals]) => [
       date,
-      (dayGoals || []).map((goal) => ({
+      (dayGoals || []).map((goal) => normalizeMinimumWinFields({
         ...goal,
         xpAwarded: goal.xpAwarded ?? Boolean(goal.completed),
       })),
@@ -76,7 +90,7 @@ export function getGoals(date) {
 export function saveGoal(date, goal) {
   const goals = getAllGoals();
   const dayGoals = goals[date] || [];
-  const nextGoal = {
+  const nextGoal = normalizeMinimumWinFields({
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     date,
     title: goal.title,
@@ -87,10 +101,11 @@ export function saveGoal(date, goal) {
     endTime: goal.endTime || "",
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
+    minimumWin: cleanMinimumWin(goal.minimumWin),
     completed: false,
     xpAwarded: false,
     createdAt: new Date().toISOString(),
-  };
+  });
 
   goals[date] = [...dayGoals, nextGoal];
   saveData(STORAGE_KEYS.goals, goals);
@@ -100,7 +115,7 @@ export function saveGoal(date, goal) {
 export function updateGoal(date, id, updates = {}) {
   const goals = getAllGoals();
   goals[date] = (goals[date] || []).map((goal) =>
-    goal.id === id ? { ...goal, ...updates } : goal,
+    goal.id === id ? normalizeMinimumWinFields({ ...goal, ...updates }) : goal,
   );
   saveData(STORAGE_KEYS.goals, goals);
   return goals[date] || [];
@@ -115,7 +130,7 @@ export function deleteGoal(date, id) {
 }
 
 export function getClassicGoals() {
-  return getData(STORAGE_KEYS.classicGoals, []).map((goal) => ({
+  return getData(STORAGE_KEYS.classicGoals, []).map((goal) => normalizeMinimumWinFields({
     ...goal,
     type: "classic",
     goalType: "daily",
@@ -127,7 +142,7 @@ export function getClassicGoals() {
 
 export function saveClassicGoal(goal) {
   const classicGoals = getClassicGoals();
-  const nextGoal = {
+  const nextGoal = normalizeMinimumWinFields({
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     type: "classic",
     goalType: "daily",
@@ -135,10 +150,11 @@ export function saveClassicGoal(goal) {
     description: goal.description || "",
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
+    minimumWin: cleanMinimumWin(goal.minimumWin),
     completed: false,
     xpAwarded: false,
     createdAt: new Date().toISOString(),
-  };
+  });
 
   saveData(STORAGE_KEYS.classicGoals, [nextGoal, ...classicGoals]);
   return nextGoal;
@@ -146,7 +162,7 @@ export function saveClassicGoal(goal) {
 
 export function updateClassicGoal(id, updates = {}) {
   const classicGoals = getClassicGoals().map((goal) =>
-    goal.id === id ? { ...goal, ...updates, type: "classic", goalType: "daily" } : goal,
+    goal.id === id ? normalizeMinimumWinFields({ ...goal, ...updates, type: "classic", goalType: "daily" }) : goal,
   );
   saveData(STORAGE_KEYS.classicGoals, classicGoals);
   return classicGoals;
@@ -159,7 +175,7 @@ export function deleteClassicGoal(id) {
 }
 
 export function getLongTermGoals() {
-  return getData(STORAGE_KEYS.longTermGoals, []).map((goal) => ({
+  return getData(STORAGE_KEYS.longTermGoals, []).map((goal) => normalizeMinimumWinFields({
     ...goal,
     type: "longTerm",
     goalType: "long-term",
@@ -171,7 +187,7 @@ export function getLongTermGoals() {
 
 export function saveLongTermGoal(goal) {
   const longTermGoals = getLongTermGoals();
-  const nextGoal = {
+  const nextGoal = normalizeMinimumWinFields({
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     type: "longTerm",
     goalType: "long-term",
@@ -179,10 +195,11 @@ export function saveLongTermGoal(goal) {
     description: goal.description || "",
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "medium",
+    minimumWin: cleanMinimumWin(goal.minimumWin),
     completed: false,
     xpAwarded: false,
     createdAt: new Date().toISOString(),
-  };
+  });
 
   saveData(STORAGE_KEYS.longTermGoals, [nextGoal, ...longTermGoals]);
   return nextGoal;
@@ -190,7 +207,7 @@ export function saveLongTermGoal(goal) {
 
 export function updateLongTermGoal(id, updates = {}) {
   const longTermGoals = getLongTermGoals().map((goal) =>
-    goal.id === id ? { ...goal, ...updates, type: "longTerm", goalType: "long-term" } : goal,
+    goal.id === id ? normalizeMinimumWinFields({ ...goal, ...updates, type: "longTerm", goalType: "long-term" }) : goal,
   );
   saveData(STORAGE_KEYS.longTermGoals, longTermGoals);
   return longTermGoals;
@@ -228,7 +245,7 @@ export function getPandaStats() {
 }
 
 export function getScheduledGoals() {
-  return getData(STORAGE_KEYS.scheduledGoals, []).map((goal) => ({
+  return getData(STORAGE_KEYS.scheduledGoals, []).map((goal) => normalizeMinimumWinFields({
     ...goal,
     type: "scheduled",
     goalType: goal.goalType === "long-term" ? "long-term" : "daily",
@@ -242,7 +259,7 @@ export function getScheduledGoals() {
 
 export function saveScheduledGoal(goal) {
   const scheduledGoals = getScheduledGoals();
-  const nextGoal = {
+  const nextGoal = normalizeMinimumWinFields({
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
     type: "scheduled",
     goalType: goal.goalType === "long-term" ? "long-term" : "daily",
@@ -254,10 +271,11 @@ export function saveScheduledGoal(goal) {
     endTime: goal.endTime,
     category: goal.category || "Personal",
     difficulty: goal.difficulty || "easy",
+    minimumWin: cleanMinimumWin(goal.minimumWin),
     completed: Boolean(goal.completed),
     xpAwarded: Boolean(goal.xpAwarded),
     createdAt: new Date().toISOString(),
-  };
+  });
 
   saveData(STORAGE_KEYS.scheduledGoals, [...scheduledGoals, nextGoal]);
   return nextGoal;
@@ -265,7 +283,7 @@ export function saveScheduledGoal(goal) {
 
 export function updateScheduledGoal(id, updates = {}) {
   const scheduledGoals = getScheduledGoals().map((goal) =>
-    goal.id === id ? { ...goal, ...updates } : goal,
+    goal.id === id ? normalizeMinimumWinFields({ ...goal, ...updates }) : goal,
   );
   saveData(STORAGE_KEYS.scheduledGoals, scheduledGoals);
   return scheduledGoals;
@@ -276,5 +294,3 @@ export function deleteScheduledGoal(id) {
   saveData(STORAGE_KEYS.scheduledGoals, scheduledGoals);
   return scheduledGoals;
 }
-
-
