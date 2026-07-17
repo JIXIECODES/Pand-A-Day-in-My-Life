@@ -1,4 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import DailyCapacityCheckIn from "../../capacity/components/DailyCapacityCheckIn.jsx";
+import { getStoredDailyCapacity } from "../../capacity/services/capacityStorage.js";
+import { getGoalEmphasis, splitGoalsForCapacity } from "../../capacity/utils/capacityRecommendations.js";
 import PandaCoach from "../../coach/components/PandaCoach.jsx";
 import FocusTimer from "../../goals/components/FocusTimer.jsx";
 import PandaCompanion from "../../panda/components/PandaCompanion.jsx";
@@ -31,8 +34,71 @@ function PandaDisplayFrame() {
   );
 }
 
-function TodayGoalsBoard({ goals, onCompleteGoal, onOpenCalendar }) {
-  const visibleGoals = goals.slice(0, 3);
+const emphasisToneClasses = {
+  emerald: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+  pink: "bg-pink-50 text-pink-700 ring-1 ring-pink-100",
+  amber: "bg-amber-50 text-amber-800 ring-1 ring-amber-100",
+};
+
+function GoalCard({ goal, incompleteIndex, capacity, onCompleteGoal }) {
+  const emphasis = getGoalEmphasis(goal, incompleteIndex, capacity);
+
+  return (
+    <article className="relative rounded-2xl bg-white px-4 py-3 shadow-sm" key={goal.id}>
+      <span className="absolute left-1/2 top-0 h-3 w-12 -translate-x-1/2 -translate-y-1/2 rotate-1 rounded-sm bg-amber-200/80" aria-hidden="true" />
+      <div className="flex items-start gap-3">
+        <button
+          aria-label={goal.completed ? `Mark ${goal.title} incomplete` : `Mark ${goal.title} complete`}
+          className={[
+            "mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-emerald-100",
+            goal.completed
+              ? "border-emerald-300 bg-emerald-500 text-white"
+              : "border-emerald-100 bg-emerald-50 text-emerald-700 hover:-translate-y-0.5 hover:bg-emerald-100",
+          ].join(" ")}
+          onClick={() => onCompleteGoal(goal.id)}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            className="size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="3"
+            viewBox="0 0 24 24"
+          >
+            {goal.completed ? <path d="M5 12.5 10 17l9-10" /> : <circle cx="12" cy="12" r="7" />}
+          </svg>
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start gap-2">
+            <p className={`text-sm font-black text-zinc-800 ${goal.completed ? "sketch-strike text-zinc-500" : ""}`}>
+              {goal.title}
+            </p>
+            {emphasis && (
+              <span className={`rounded-full px-2 py-1 text-[0.65rem] font-black uppercase ${emphasisToneClasses[emphasis.tone]}`}>
+                {emphasis.label}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs font-bold text-zinc-500">
+            {goal.startTime && goal.endTime ? `${goal.startTime} - ${goal.endTime}` : goal.category || "Calendar and Goals"}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onOpenCalendar }) {
+  const [showLater, setShowLater] = useState(false);
+  const incompleteGoals = goals.filter((goal) => !goal.completed);
+  const incompleteIndexById = new Map(incompleteGoals.map((goal, index) => [goal.id, index]));
+  const { visibleGoals, laterGoals } = splitGoalsForCapacity(goals, capacity);
+  const allDisplayedGoals = capacity === "overwhelmed" && !showLater ? visibleGoals : goals;
+  const displayedGoals = allDisplayedGoals.slice(0, capacity === "overwhelmed" && !showLater ? allDisplayedGoals.length : 3);
+  const hiddenCount = capacity === "overwhelmed" && !showLater ? laterGoals.length : Math.max(goals.length - displayedGoals.length, 0);
 
   return (
     <section className="overflow-hidden rounded-[2rem] border border-amber-200 bg-amber-100 p-4 shadow-xl shadow-amber-200/50">
@@ -47,52 +113,35 @@ function TodayGoalsBoard({ goals, onCompleteGoal, onOpenCalendar }) {
           </div>
 
           <div className="mt-4 space-y-3">
-            {visibleGoals.length > 0 ? (
-              visibleGoals.map((goal) => (
-                <article className="relative rounded-2xl bg-white px-4 py-3 shadow-sm" key={goal.id}>
-                  <span className="absolute left-1/2 top-0 h-3 w-12 -translate-x-1/2 -translate-y-1/2 rotate-1 rounded-sm bg-amber-200/80" aria-hidden="true" />
-                  <div className="flex items-start gap-3">
-                    <button
-                      aria-label={goal.completed ? `Mark ${goal.title} incomplete` : `Mark ${goal.title} complete`}
-                      className={[
-                        "mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-emerald-100",
-                        goal.completed
-                          ? "border-emerald-300 bg-emerald-500 text-white"
-                          : "border-emerald-100 bg-emerald-50 text-emerald-700 hover:-translate-y-0.5 hover:bg-emerald-100",
-                      ].join(" ")}
-                      onClick={() => onCompleteGoal(goal.id)}
-                      type="button"
-                    >
-                      <svg
-                        aria-hidden="true"
-                        className="size-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        viewBox="0 0 24 24"
-                      >
-                        {goal.completed ? <path d="M5 12.5 10 17l9-10" /> : <circle cx="12" cy="12" r="7" />}
-                      </svg>
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-sm font-black text-zinc-800 ${goal.completed ? "sketch-strike text-zinc-500" : ""}`}>
-                        {goal.title}
-                      </p>
-                      <p className="mt-1 text-xs font-bold text-zinc-500">
-                        {goal.startTime && goal.endTime ? `${goal.startTime} - ${goal.endTime}` : goal.category || "Calendar and Goals"}
-                      </p>
-                    </div>
-                  </div>
-                </article>
+            {incompleteGoals.length > 0 ? (
+              displayedGoals.map((goal) => (
+                <GoalCard
+                  capacity={capacity}
+                  goal={goal}
+                  incompleteIndex={incompleteIndexById.get(goal.id)}
+                  key={goal.id}
+                  onCompleteGoal={onCompleteGoal}
+                />
               ))
             ) : (
-              <p className="rounded-2xl bg-white/85 p-4 text-sm font-bold text-amber-900">No goals planned yet.</p>
+              <p className="rounded-2xl bg-white/85 p-4 text-sm font-bold text-amber-900">
+                You do not have any unfinished daily goals. You can rest or add something small for today.
+              </p>
             )}
           </div>
 
-          {goals.length > visibleGoals.length && (
+          {capacity === "overwhelmed" && laterGoals.length > 0 && (
+            <button
+              aria-expanded={showLater}
+              className="mt-3 w-full rounded-full bg-white/80 px-4 py-2 text-center text-xs font-black text-amber-900 transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-amber-200"
+              onClick={() => setShowLater((current) => !current)}
+              type="button"
+            >
+              {showLater ? "Collapse Later today" : `Later today (${laterGoals.length})`}
+            </button>
+          )}
+
+          {hiddenCount > 0 && capacity !== "overwhelmed" && (
             <p className="mt-3 rounded-full bg-white/70 px-4 py-2 text-center text-xs font-black text-amber-900">
               View all in Calendar and Goals
             </p>
@@ -113,10 +162,12 @@ function TodayGoalsBoard({ goals, onCompleteGoal, onOpenCalendar }) {
 
 export default function Home() {
   const { classicGoals, completeScheduledGoal, longTermGoals, scheduledGoals, setActivePage } = useAppContext();
+  const [dailyCapacity, setDailyCapacity] = useState(() => getStoredDailyCapacity().capacity);
   const todaysGoals = useMemo(
     () => scheduledGoals.filter((goal) => goal.date === todayKey()).sort((a, b) => a.startTime.localeCompare(b.startTime)),
     [scheduledGoals],
   );
+  const updateDailyCapacity = useCallback((capacity) => setDailyCapacity(capacity), []);
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
@@ -129,10 +180,12 @@ export default function Home() {
         <div className="grid gap-5">
           <PandaDisplayFrame />
           <PandaMoodDisplay />
+          <DailyCapacityCheckIn onCapacityChange={updateDailyCapacity} />
         </div>
 
         <div className="grid gap-5">
           <TodayGoalsBoard
+            capacity={dailyCapacity}
             goals={todaysGoals}
             onCompleteGoal={completeScheduledGoal}
             onOpenCalendar={() => setActivePage("calendar", { planningTab: "calendar" })}

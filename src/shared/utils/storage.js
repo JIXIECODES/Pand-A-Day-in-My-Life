@@ -15,6 +15,7 @@ export const STORAGE_KEYS = {
   scheduledGoals: "panda-day-scheduled-goals",
   categoryColors: "categoryColors",
   dailyTasks: "panda-day-daily-tasks",
+  dailyCapacity: "panda-day-daily-capacity",
 };
 
 export const DEFAULT_CATEGORY_COLORS = {
@@ -275,3 +276,5 @@ export function deleteScheduledGoal(id) {
   saveData(STORAGE_KEYS.scheduledGoals, scheduledGoals);
   return scheduledGoals;
 }
+
+
