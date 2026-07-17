@@ -14,7 +14,7 @@ export default function Calendar({ calendarHelp, className = "", onOpenDay }) {
   }
 
   return (
-    <section className={`rounded-[2rem] border border-white/80 bg-white/60 p-3 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-4 ${className}`}>
+    <section data-calendar-card className={`rounded-[2rem] border border-white/80 bg-white/60 p-3 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-4 ${className}`}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-black text-pink-500">Monthly care map</p>
@@ -40,7 +40,7 @@ export default function Calendar({ calendarHelp, className = "", onOpenDay }) {
       </div>
       <div className="relative mt-2">
         {calendarHelp}
-        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-7">
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
           {days.map((day) => {
             const key = day.format("YYYY-MM-DD");
             return (

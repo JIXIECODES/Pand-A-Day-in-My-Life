@@ -9,7 +9,6 @@ import {
   getIncompleteCoachGoals,
   getSmartCoachResponse,
   makeGoalRef,
-  matchCoachIntent,
   normalizeTitle,
   timeOptions,
 } from "../services/smartCoachService.js";
@@ -59,7 +58,6 @@ export default function PandaCoach({
     saveGoalMinimumWin,
     setFocusTimerFromCoach,
   } = useAppContext();
-  const [input, setInput] = useState("");
   const [stage, setStage] = useState("home");
   const [selectedGoalRef, setSelectedGoalRef] = useState(null);
   const [selectedBarrier, setSelectedBarrier] = useState("");
@@ -137,11 +135,6 @@ export default function PandaCoach({
     resetFlow(getSmartCoachResponse(actionId, context));
   }
 
-  function submitInput(event) {
-    event.preventDefault();
-    const intent = matchCoachIntent(input);
-    runCoachAction(intent);
-  }
 
   function chooseGoal(goal) {
     setSelectedGoalRef(makeGoalRef(goal));
@@ -261,22 +254,6 @@ export default function PandaCoach({
           ))}
         </div>
 
-        <form className="mt-5 flex flex-col gap-3 sm:flex-row" onSubmit={submitInput}>
-          <label className="sr-only" htmlFor="panda-coach-input">Ask Panda Smart Coach</label>
-          <input
-            className="min-h-12 flex-1 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800 outline-none transition focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
-            id="panda-coach-input"
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="Try: I'm stuck, help me focus, or plan my day"
-            value={input}
-          />
-          <button
-            className="rounded-2xl bg-emerald-400 px-5 py-3 font-black text-emerald-950 transition hover:-translate-y-0.5 hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-100 active:translate-y-0"
-            type="submit"
-          >
-            Ask
-          </button>
-        </form>
       </>
     );
   }
@@ -460,17 +437,15 @@ export default function PandaCoach({
 
   return (
     <section className="rounded-[2rem] border border-emerald-100 bg-white/75 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="max-w-3xl">
         <div>
           <p className="text-xs font-black uppercase text-emerald-600">Panda Smart Coach</p>
           <h2 className="mt-1 text-2xl font-black text-zinc-950">What should we figure out next?</h2>
           <p className="mt-2 max-w-2xl text-sm font-semibold text-zinc-500">
-            Ask for a tiny plan, a focus nudge, or help getting unstuck on a real goal.
+            Choose a tiny plan, a focus nudge, or help getting unstuck on a real goal.
           </p>
         </div>
-        <div className="rounded-3xl bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800">
-          Always local. No API needed.
-        </div>
+
       </div>
 
       {stage === "home" && renderHome()}

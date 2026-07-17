@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import HomeGoals, { GoalComposer } from "../../goals/components/HomeGoals.jsx";
 import Calendar from "../components/Calendar.jsx";
@@ -86,6 +86,9 @@ export default function CalendarPage() {
   const { planningTab, selectedDate, setPlanningTab } = useAppContext();
   const activeTab = planningTabs.some((tab) => tab.id === planningTab) ? planningTab : "calendar";
   const [plannerOpen, setPlannerOpen] = useState(false);
+  const calendarFrameRef = useRef(null);
+  const [calendarHeight, setCalendarHeight] = useState(null);
+  const [isCalendarWide, setIsCalendarWide] = useState(false);
   const [calendarHelpOpen, setCalendarHelpOpen] = useState(false);
   const [hideCalendarHelp, setHideCalendarHelp] = useState(
     () => localStorage.getItem(CALENDAR_HELP_STORAGE_KEY) === "true",
@@ -102,6 +105,38 @@ export default function CalendarPage() {
       `#planning?tab=${activeTab}`,
     );
   }, [activeTab, planningTab, setPlanningTab]);
+  useEffect(() => {
+    if (activeTab !== "calendar") {
+      setCalendarHeight(null);
+      return undefined;
+    }
+
+    const calendarFrame = calendarFrameRef.current;
+    const calendarCard = calendarFrame?.querySelector("[data-calendar-card]");
+    if (!calendarCard || typeof ResizeObserver === "undefined") return undefined;
+
+    const updateCalendarHeight = () => {
+      setCalendarHeight(calendarCard.getBoundingClientRect().height);
+    };
+
+    updateCalendarHeight();
+    const observer = new ResizeObserver(updateCalendarHeight);
+    observer.observe(calendarCard);
+
+    return () => observer.disconnect();
+  }, [activeTab]);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const updateMatch = () => setIsCalendarWide(mediaQuery.matches);
+
+    updateMatch();
+    mediaQuery.addEventListener("change", updateMatch);
+
+    return () => mediaQuery.removeEventListener("change", updateMatch);
+  }, []);
+
 
   useEffect(() => {
     if (activeTab === "calendar" && !hideCalendarHelp) {
@@ -131,13 +166,13 @@ export default function CalendarPage() {
   }
 
   const mainClass = activeTab === "calendar"
-    ? "mx-auto flex h-[calc(100vh-5.5rem)] h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6"
+    ? "mx-auto flex min-h-[calc(100vh-5.5rem)] min-h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6"
     : "mx-auto flex min-h-[calc(100vh-5.5rem)] min-h-[calc(100dvh-5.5rem)] max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6";
   const contentGridClass = activeTab === "calendar"
-    ? "grid min-h-0 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
+    ? "grid items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(18rem,3fr)]"
     : "grid min-h-0 items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]";
-  const contentOverflowClass = activeTab === "calendar" ? "overflow-hidden" : "overflow-visible";
-  const asideClass = activeTab === "calendar" ? "flex min-h-0 min-w-0 flex-col overflow-hidden" : "min-h-0 min-w-0";
+  const contentOverflowClass = "overflow-visible";
+  const asideClass = activeTab === "calendar" ? "min-h-0 min-w-0" : "min-h-0 min-w-0";
 
   return (
     <main className={mainClass}>
@@ -170,7 +205,7 @@ export default function CalendarPage() {
       </section>
 
       <section className={`${contentGridClass} flex-1 ${contentOverflowClass}`}>
-        <div className="min-h-0 min-w-0 lg:overflow-hidden">
+        <div className="min-h-0 min-w-0" ref={activeTab === "calendar" ? calendarFrameRef : null}>
           {activeTab === "daily" && <HomeGoals kind="daily" showComposer={false} />}
 
           {activeTab === "longTerm" && <HomeGoals kind="longTerm" showComposer={false} />}
@@ -207,23 +242,13 @@ export default function CalendarPage() {
           )}
 
           {activeTab === "calendar" && (
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
-              <div className="shrink-0">
-                <button
-                  className="w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-                  onClick={() => setPlannerOpen(true)}
-                  type="button"
-                >
-                  Add or Edit Time Block
-                </button>
-              </div>
-              <DaySchedule
-                className="min-h-0 flex-1 overflow-hidden"
-                date={selectedDate}
-                onEditGoal={() => setPlannerOpen(true)}
-                showForm={false}
-              />
-            </div>
+            <DaySchedule
+              className="min-h-0 max-h-[min(42rem,75vh)] overflow-hidden lg:max-h-none"
+              date={selectedDate}
+              onEditGoal={() => setPlannerOpen(true)}
+              showForm={false}
+              style={isCalendarWide && calendarHeight ? { height: `${calendarHeight}px` } : undefined}
+            />
           )}
         </aside>
       </section>

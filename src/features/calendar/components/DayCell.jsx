@@ -10,7 +10,7 @@ export default function DayCell({ day, goals, isCurrentMonth, onSelect, schedule
   return (
     <button
       className={[
-        "min-h-24 rounded-2xl border p-2.5 text-left transition hover:-translate-y-0.5 hover:shadow-lg",
+        "min-h-16 rounded-2xl border p-1.5 text-left transition hover:-translate-y-0.5 hover:shadow-lg sm:min-h-24 sm:p-2.5",
         isToday ? "border-zinc-950 bg-amber-50" : "border-white/80 bg-white/75",
         isCurrentMonth ? "text-zinc-950" : "text-zinc-400 opacity-70",
       ].join(" ")}
@@ -18,7 +18,7 @@ export default function DayCell({ day, goals, isCurrentMonth, onSelect, schedule
       type="button"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`grid size-8 place-items-center rounded-full text-sm font-black ${isToday ? "bg-zinc-950 text-white" : "bg-zinc-100"}`}>
+        <span className={`grid size-7 place-items-center rounded-full text-xs font-black sm:size-8 sm:text-sm ${isToday ? "bg-zinc-950 text-white" : "bg-zinc-100"}`}>
           {day.date()}
         </span>
         {completed > 0 && <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">{completed} done</span>}
