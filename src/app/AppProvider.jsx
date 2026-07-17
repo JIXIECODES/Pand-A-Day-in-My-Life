@@ -84,6 +84,9 @@ function normalizeJournalEntries(entries = {}) {
 function minimumWinText(goal = {}) {
   return typeof goal.minimumWin === "string" ? goal.minimumWin.trim() : "";
 }
+function normalizeGoalTitleForCoach(value = "") {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
 function dateKeyFromValue(value) {
   if (!value) return todayKey();
   const parsed = dayjs(value);
@@ -454,6 +457,103 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     setToast(reward.xp > 0 ? `Minimum progress completed. +${reward.xp} XP` : "Minimum progress completed. Your full goal is still available.");
   }
 
+  function findGoalForCoach(goalRef = {}) {
+    if (!goalRef?.id) return null;
+    if (goalRef.coachType === "classic" || goalRef.type === "classic") {
+      return getClassicGoals().find((goal) => goal.id === goalRef.id) || null;
+    }
+    if (goalRef.coachType === "longTerm" || goalRef.type === "longTerm") {
+      return getLongTermGoals().find((goal) => goal.id === goalRef.id) || null;
+    }
+    if (goalRef.coachType === "scheduled" || goalRef.type === "scheduled") {
+      return getScheduledGoals().find((goal) => goal.id === goalRef.id) || null;
+    }
+    if (goalRef.date) {
+      return (getAllGoals()[goalRef.date] || []).find((goal) => goal.id === goalRef.id) || null;
+    }
+    return null;
+  }
+
+  function saveGoalMinimumWin(goalRef, minimumWin) {
+    const nextMinimumWin = typeof minimumWin === "string" ? minimumWin.trim() : "";
+    if (!nextMinimumWin) {
+      setToast("Panda needs a Minimum Win before saving.");
+      return { ok: false, reason: "empty" };
+    }
+
+    const currentGoal = findGoalForCoach(goalRef);
+    if (!currentGoal) {
+      setToast("That goal was already removed.");
+      return { ok: false, reason: "missing" };
+    }
+
+    const updates = {
+      minimumWin: nextMinimumWin,
+      minimumWinCompleted: false,
+      minimumWinCompletedAt: null,
+      minimumWinRewardGranted: false,
+    };
+
+    if (currentGoal.type === "classic") {
+      setClassicGoals(updateClassicGoal(currentGoal.id, updates));
+    } else if (currentGoal.type === "longTerm") {
+      setLongTermGoals(updateLongTermGoal(currentGoal.id, updates));
+    } else if (currentGoal.type === "scheduled") {
+      setScheduledGoals(updateScheduledGoal(currentGoal.id, updates));
+    } else if (currentGoal.date) {
+      updateGoal(currentGoal.date, currentGoal.id, updates);
+      setGoalsByDate(getAllGoals());
+    } else {
+      setToast("Panda could not update that goal type.");
+      return { ok: false, reason: "unsupported" };
+    }
+
+    setToast("Minimum Win saved");
+    return { ok: true, goal: { ...currentGoal, ...updates } };
+  }
+
+  function addSuggestedDailyGoals(tasks = []) {
+    const existingTitles = new Set(getClassicGoals().map((goal) => normalizeGoalTitleForCoach(goal.title || "")));
+    const added = [];
+    const skipped = [];
+
+    tasks.forEach((task) => {
+      const title = typeof task?.title === "string" ? task.title.trim() : "";
+      const normalized = normalizeGoalTitleForCoach(title);
+      if (!title || existingTitles.has(normalized)) {
+        if (title) skipped.push(title);
+        return;
+      }
+
+      const saved = saveClassicGoal({
+        title,
+        description: task.description || "Suggested by Panda Smart Coach",
+        category: task.category || "Personal",
+        difficulty: task.difficulty || "easy",
+        minimumWin: task.minimumWin || "",
+      });
+      existingTitles.add(normalized);
+      added.push(saved);
+    });
+
+    setClassicGoals(getClassicGoals());
+    if (added.length > 0) {
+      setToast(added.length === 1 ? "Suggested daily goal added" : `${added.length} suggested daily goals added`);
+    } else if (skipped.length > 0) {
+      setToast("These steps are already in your daily goals.");
+    }
+
+    return { ok: added.length > 0, added, skipped };
+  }
+
+  function setFocusTimerFromCoach(goalRef, minutes = 25) {
+    const currentGoal = goalRef?.id ? findGoalForCoach(goalRef) : null;
+    const safeMinutes = Math.max(1, Math.min(240, Number(minutes) || 25));
+    updateSettings({ timerDurationMinutes: safeMinutes });
+    if (currentGoal) setTimerGoal(currentGoal);
+    setToast(currentGoal ? `Focus timer set for ${currentGoal.title}` : `Focus timer set for ${safeMinutes} minutes`);
+    return { ok: true, goal: currentGoal, minutes: safeMinutes };
+  }
   function removeClassicGoal(id) {
     setClassicGoals(deleteClassicGoal(id));
     persistStats(withMood(pandaStats, "idle", "Daily goal removed"));
@@ -753,6 +853,9 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       logout: onLogout,
       removeScheduledGoal,
       saveJournalEntry,
+      setFocusTimerFromCoach,
+      addSuggestedDailyGoals,
+      saveGoalMinimumWin,
       scheduledGoals,
       selectedDate,
       setActivePage: navigatePage,

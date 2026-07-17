@@ -198,7 +198,7 @@ export default function Home() {
         </div>
       </section>
 
-      <PandaCoach dailyGoals={classicGoals} longTermGoals={longTermGoals} todaysGoals={todaysGoals} />
+      <PandaCoach capacity={dailyCapacity} dailyGoals={classicGoals} longTermGoals={longTermGoals} todaysGoals={todaysGoals} />
     </main>
   );
 }
