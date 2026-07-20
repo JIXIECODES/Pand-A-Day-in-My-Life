@@ -438,14 +438,11 @@ export default function PandaCoach({
   return (
     <section className="rounded-[2rem] border border-emerald-100 bg-white/75 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
       <div className="max-w-3xl">
-        <div>
-          <p className="text-xs font-black uppercase text-emerald-600">Panda Smart Coach</p>
-          <h2 className="mt-1 text-2xl font-black text-zinc-950">What should we figure out next?</h2>
-          <p className="mt-2 max-w-2xl text-sm font-semibold text-zinc-500">
-            Choose a tiny plan, a focus nudge, or help getting unstuck on a real goal.
-          </p>
-        </div>
-
+        <p className="text-xs font-black uppercase text-emerald-600">Panda Smart Coach</p>
+        <h2 className="mt-1 text-2xl font-black text-zinc-950">What should we figure out next?</h2>
+        <p className="mt-2 max-w-2xl text-sm font-semibold text-zinc-500">
+          Choose a tiny plan, a focus nudge, or help getting unstuck on a real goal.
+        </p>
       </div>
 
       {stage === "home" && renderHome()}

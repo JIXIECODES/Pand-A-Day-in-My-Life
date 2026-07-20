@@ -23,7 +23,7 @@ export default function DayCell({ day, goals, isCurrentMonth, onSelect, schedule
         </span>
         {completed > 0 && <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">{completed} done</span>}
       </div>
-      <div className="mt-2 space-y-1">
+      <div className="mt-2 hidden space-y-1 sm:block">
         {goals.slice(0, 2).map((goal) => (
           <div
             className={[
