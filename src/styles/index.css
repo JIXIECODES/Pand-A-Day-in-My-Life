@@ -1,22 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Fredoka", ui-rounded, "Nunito", system-ui, sans-serif;
+  --font-body: "Nunito", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   color: #27221f;
   background: #fff8ef;
 }
 
+@theme {
+  --font-display: "Fredoka", ui-rounded, "Nunito", system-ui, sans-serif;
+  --font-body: "Nunito", ui-sans-serif, system-ui, sans-serif;
+}
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+nav,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+}
+
+h1 {
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+h2,
+h3,
+button,
+nav {
+  font-weight: 600;
+}
+
+p,
+li,
+textarea,
+input,
+select,
+.font-body {
+  font-family: var(--font-body);
+}
+
+label,
+.font-black:not(p),
+.font-bold:not(p),
+.tabular-nums,
+[role="tab"],
+[role="menuitem"] {
+  font-family: var(--font-display);
+}
+
+p.uppercase,
+span.uppercase,
+.small-label {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+.tabular-nums {
+  line-height: 1.12;
 }
 
 body.navigation-drawer-open {
   overflow: hidden;
 }
 
-button,
 input,
 textarea,
 select {
@@ -65,7 +126,7 @@ select {
   border: 1px solid #e4e4e7;
   background: #fafafa;
   padding: 0.75rem 1rem;
-  font-weight: 700;
+  font-weight: 600;
   outline: none;
   transition: border-color 160ms ease, background-color 160ms ease;
 }

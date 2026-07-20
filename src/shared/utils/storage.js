@@ -31,13 +31,27 @@ export const DEFAULT_CATEGORY_COLORS = {
 
 export const GOAL_CATEGORIES = ["Personal", "School", "Work", "Health", "Creative", "Chores", "Other"];
 
+let activeStorageOwner = "guest";
+
+function normalizeStorageOwner(owner = "guest") {
+  return String(owner || "guest").trim().toLowerCase().replace(/[^a-z0-9@._-]/g, "-") || "guest";
+}
+
+function scopedKey(key) {
+  return `panda-day-account:${activeStorageOwner}:${key}`;
+}
+
+export function setStorageOwner(owner) {
+  activeStorageOwner = normalizeStorageOwner(owner);
+}
+
 export function categoryKey(category = "Other") {
   return category.toLowerCase().trim() || "other";
 }
 
 export function getData(key, fallback) {
   try {
-    const stored = localStorage.getItem(key);
+    const stored = localStorage.getItem(scopedKey(key));
     return stored ? JSON.parse(stored) : fallback;
   } catch {
     return fallback;
@@ -45,12 +59,12 @@ export function getData(key, fallback) {
 }
 
 export function saveData(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  localStorage.setItem(scopedKey(key), JSON.stringify(value));
   return value;
 }
 
 export function clearData(key) {
-  localStorage.removeItem(key);
+  localStorage.removeItem(scopedKey(key));
 }
 
 export function resetAllData() {

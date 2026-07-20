@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
+import LoginPage from "../features/auth/pages/LoginPage.jsx";
+import SignUpPage from "../features/auth/pages/SignUpPage.jsx";
+import { clearAuthSession, getAuthSession } from "../features/auth/utils/authStorage.js";
 import Navbar from "../shared/components/Navbar.jsx";
 import NavigationDrawer from "../shared/components/NavigationDrawer.jsx";
 import { AppProvider, useAppContext } from "./AppProvider.jsx";
 import { routes } from "./routes.jsx";
 import { getSeason, getSeasonTheme } from "../shared/utils/seasonUtils.js";
+import { setStorageOwner } from "../shared/utils/storage.js";
 
 function AppContent() {
   const { activePage, clearToast, setActivePage, settings, toast } = useAppContext();
@@ -36,10 +40,45 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function storageOwnerFromSession(session) {
+  if (!session || session.isGuest) return "guest";
+  return session.user?.email || session.user?.id || "guest";
+}
+
+function MainApp({ authSession, onLogout }) {
+  const storageOwner = storageOwnerFromSession(authSession);
+  setStorageOwner(storageOwner);
+
   return (
-    <AppProvider>
+    <AppProvider authSession={authSession} key={storageOwner} onLogout={onLogout}>
       <AppContent />
     </AppProvider>
   );
+}
+
+export default function App() {
+  const [authSession, setAuthSession] = useState(() => getAuthSession());
+  const [authScreen, setAuthScreen] = useState(() => (window.location.hash.replace(/^#\/?/, "") === "signup" ? "signup" : "login"));
+
+  function enterApp(session) {
+    setStorageOwner(storageOwnerFromSession(session));
+    setAuthSession(session);
+  }
+
+  function logout() {
+    setStorageOwner("guest");
+    clearAuthSession();
+    setAuthSession(null);
+    setAuthScreen("login");
+  }
+
+  if (!authSession) {
+    return authScreen === "signup" ? (
+      <SignUpPage onEnterApp={enterApp} onShowLogin={() => setAuthScreen("login")} />
+    ) : (
+      <LoginPage onEnterApp={enterApp} onShowSignUp={() => setAuthScreen("signup")} />
+    );
+  }
+
+  return <MainApp authSession={authSession} onLogout={logout} />;
 }
