@@ -53,6 +53,8 @@ import {
 
 const AppContext = createContext(null);
 
+const legacyAuthPages = new Set(["login", "signup", "register"]);
+
 function navigationFromLocation() {
   if (typeof window === "undefined") return { page: "home", planningTab: "calendar" };
 
@@ -60,6 +62,11 @@ function navigationFromLocation() {
   const [pagePart, queryPart = ""] = hash.split("?");
   const params = new URLSearchParams(queryPart);
   const tab = params.get("tab");
+  const pathPage = window.location.pathname.split("/").filter(Boolean).at(-1) || "";
+
+  if (legacyAuthPages.has(pagePart) || legacyAuthPages.has(pathPage)) {
+    return { page: "home", planningTab: "calendar", replaceUrl: true };
+  }
 
   if (pagePart === "planning" || pagePart === "calendar") {
     return { page: "calendar", planningTab: tab || "calendar" };
@@ -142,7 +149,7 @@ function unlockByRequirements(items, stats, currentIds) {
   return { next, newlyUnlocked };
 }
 
-export function AppProvider({ authSession = null, children, onLogout = () => {} }) {
+export function AppProvider({ children }) {
   const initialNavigation = useMemo(() => navigationFromLocation(), []);
   const [activePage, setActivePageState] = useState(initialNavigation.page);
   const [planningTab, setPlanningTab] = useState(initialNavigation.planningTab);
@@ -257,7 +264,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     window.history.replaceState(
       { activePage, planningTab },
       "",
-      window.location.href,
+      initialNavigation.replaceUrl ? "#home" : window.location.href,
     );
     window.addEventListener("popstate", syncFromHistory);
     return () => window.removeEventListener("popstate", syncFromHistory);
@@ -846,7 +853,6 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       addGoal,
       addLongTermGoal,
       addScheduledGoal,
-      authSession,
       categoryColors,
       canClaimReward: canClaimDailyReward(dailyRewards.lastClaimedDate),
       claimReward,
@@ -876,7 +882,6 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       resetAppData,
       resetCategoryColors,
       resilienceState,
-      logout: onLogout,
       removeScheduledGoal,
       saveJournalEntry,
       setFocusTimerFromCoach,
@@ -905,7 +910,6 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
     }),
     [
       activePage,
-      authSession,
       categoryColors,
       classicGoals,
       currentMonth,
@@ -926,7 +930,6 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       unlockedAchievements,
       unlockedDecorations,
       unlockedOutfits,
-      onLogout,
     ],
   );
 
