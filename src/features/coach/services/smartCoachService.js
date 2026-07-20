@@ -182,6 +182,7 @@ export function getIncompleteCoachGoals(context = {}) {
 }
 
 export function findCoachGoal(context = {}, goalRef = {}) {
+  if (!goalRef?.id) return null;
   return getIncompleteCoachGoals(context).find((goal) => goal.id === goalRef.id && goal.coachType === goalRef.coachType) || null;
 }
 
