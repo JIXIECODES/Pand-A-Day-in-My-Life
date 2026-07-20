@@ -165,7 +165,7 @@ function TodayGoalsBoard({ capacity, goals, onCompleteGoal, onCompleteMinimumWin
 }
 
 export default function Home() {
-  const { classicGoals, completeMinimumWin, completeScheduledGoal, longTermGoals, resilienceState, scheduledGoals, setActivePage } = useAppContext();
+  const { classicGoals, completeMinimumWin, completeScheduledGoal, longTermGoals, pandaStats, resilienceState, scheduledGoals, setActivePage } = useAppContext();
   const [dailyCapacity, setDailyCapacity] = useState(() => getStoredDailyCapacity().capacity);
   const todaysGoals = useMemo(
     () => scheduledGoals.filter((goal) => goal.date === todayKey()).sort((a, b) => a.startTime.localeCompare(b.startTime)),
@@ -187,7 +187,7 @@ export default function Home() {
 
             <PandaMoodDisplay />
 
-            <ResilienceReturnsCard resilienceState={resilienceState} />
+            <ResilienceReturnsCard currentStreak={pandaStats.streak} resilienceState={resilienceState} />
 
           </div>
           <DailyCapacityCheckIn onCapacityChange={updateDailyCapacity} />
