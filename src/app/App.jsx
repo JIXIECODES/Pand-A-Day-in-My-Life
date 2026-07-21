@@ -4,6 +4,7 @@ import SignUpPage from "../features/auth/pages/SignUpPage.jsx";
 import { clearAuthSession, getAuthSession } from "../features/auth/utils/authStorage.js";
 import Navbar from "../shared/components/Navbar.jsx";
 import NavigationDrawer from "../shared/components/NavigationDrawer.jsx";
+import BambooDecoration from "../shared/components/BambooDecoration.jsx";
 import { AppProvider, useAppContext } from "./AppProvider.jsx";
 import { routes } from "./routes.jsx";
 import { getSeason, getSeasonTheme } from "../shared/utils/seasonUtils.js";
@@ -22,7 +23,9 @@ function AppContent() {
   }, [clearToast, toast]);
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${theme.page} text-zinc-900`}>
+    <div className={`relative min-h-screen overflow-x-hidden bg-gradient-to-br ${theme.page} text-zinc-900`}>
+      <BambooDecoration className="pointer-events-none fixed -bottom-10 -left-5 z-0 hidden h-64 text-emerald-600 opacity-[0.09] lg:block" variant="cluster" />
+      <BambooDecoration className="pointer-events-none fixed -right-6 top-24 z-0 hidden h-52 -scale-x-100 text-emerald-600 opacity-[0.07] xl:block" variant="cluster" />
       <Navbar drawerOpen={drawerOpen} onOpenDrawer={() => setDrawerOpen(true)} />
       <NavigationDrawer
         activePage={activePage}
@@ -35,7 +38,7 @@ function AppContent() {
           {toast}
         </div>
       )}
-      {routes[activePage] || routes.home}
+      <div className="relative z-10">{routes[activePage] || routes.home}</div>
     </div>
   );
 }

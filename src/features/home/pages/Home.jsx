@@ -10,6 +10,7 @@ import PandaMoodDisplay from "../../panda/components/PandaMoodDisplay.jsx";
 import ResilienceReturnsCard from "../../resilience/components/ResilienceReturnsCard.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { greetingForNow, todayKey } from "../../calendar/utils/dateUtils.js";
+import BambooDecoration from "../../../shared/components/BambooDecoration.jsx";
 
 function PandaGreetingBubble() {
   return (
@@ -27,7 +28,8 @@ function PandaGreetingBubble() {
 
 function PandaDisplayFrame() {
   return (
-    <section className="rounded-[2rem] border border-white/80 bg-white/65 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/65 p-5 shadow-xl shadow-zinc-200/60 backdrop-blur">
+      <BambooDecoration className="pointer-events-none absolute -bottom-7 -right-3 h-40 text-emerald-500 opacity-15" variant="cluster" />
       <div className="grid items-center gap-5 sm:grid-cols-[minmax(12rem,0.85fr)_minmax(16rem,1fr)]">
         <PandaGreetingBubble />
         <PandaCompanion frameless />
@@ -175,7 +177,8 @@ export default function Home() {
 
   return (
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6">
-      <div className="rounded-[2rem] bg-white/70 p-6 shadow-xl shadow-zinc-200/60 backdrop-blur">
+      <div className="relative overflow-hidden rounded-[2rem] bg-white/70 p-6 pr-20 shadow-xl shadow-zinc-200/60 backdrop-blur sm:pr-28">
+        <BambooDecoration className="pointer-events-none absolute -right-2 -top-3 size-28 rotate-12 text-emerald-500 opacity-25" />
         <p className="text-sm font-black text-pink-500">{greetingForNow()}</p>
         <h1 className="mt-1 text-4xl font-black text-zinc-950">What does your panda get to remember today?</h1>
       </div>

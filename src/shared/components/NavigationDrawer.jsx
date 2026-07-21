@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { navigationLinks } from "../../app/navigation.js";
+import BambooDecoration from "./BambooDecoration.jsx";
 
 export default function NavigationDrawer({ activePage, onClose, onNavigate, open }) {
   useEffect(() => {
@@ -67,7 +68,9 @@ export default function NavigationDrawer({ activePage, onClose, onNavigate, open
         id="main-navigation-drawer"
         role="dialog"
       >
-        <div className="flex min-h-0 flex-1 flex-col">
+        <BambooDecoration className="pointer-events-none absolute -bottom-8 -left-6 h-56 text-emerald-600 opacity-15" variant="cluster" />
+        <BambooDecoration className="pointer-events-none absolute -right-4 top-20 size-24 rotate-12 text-emerald-500 opacity-15" />
+        <div className="relative flex min-h-0 flex-1 flex-col">
           <div className="shrink-0 flex items-start justify-between gap-3 border-b border-white/80 px-5 py-5">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Menu</p>

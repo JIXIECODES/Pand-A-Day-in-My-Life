@@ -6,6 +6,7 @@ import DailyReward from "../components/DailyReward.jsx";
 import DecorationShelf from "../../panda/components/DecorationShelf.jsx";
 import OutfitSelector from "../../panda/components/OutfitSelector.jsx";
 import { useAppContext } from "../../../app/AppProvider.jsx";
+import BambooDecoration from "../../../shared/components/BambooDecoration.jsx";
 
 export default function RewardsPage() {
   const { dailyTasks, unlockedAchievements } = useAppContext();
@@ -14,9 +15,10 @@ export default function RewardsPage() {
     <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[20rem_1fr]">
       <aside className="space-y-5">
         <DailyReward />
-        <section className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
+        <section className="relative overflow-hidden rounded-[2rem] bg-white/80 p-5 shadow-sm">
+          <BambooDecoration className="pointer-events-none absolute -bottom-7 -right-3 h-32 text-emerald-500 opacity-20" variant="cluster" />
           <p className="text-sm font-black text-pink-500">Gentle rewards</p>
-          <h1 className="mt-1 text-3xl font-black text-zinc-950">Unlock cozy things by showing up.</h1>
+          <h1 className="relative mt-1 pr-10 text-3xl font-black text-zinc-950">Unlock cozy things by showing up.</h1>
         </section>
       </aside>
       <section className="space-y-5">

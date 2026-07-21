@@ -4,6 +4,7 @@ import HomeGoals, { GoalComposer } from "../../goals/components/HomeGoals.jsx";
 import Calendar from "../components/Calendar.jsx";
 import DaySchedule from "../components/DaySchedule.jsx";
 import DayPlannerModal from "../components/DayPlannerModal.jsx";
+import BambooDecoration from "../../../shared/components/BambooDecoration.jsx";
 
 const planningTabs = [
   { id: "calendar", label: "Calendar" },
@@ -176,10 +177,11 @@ export default function CalendarPage() {
 
   return (
     <main className={mainClass}>
-      <section className="shrink-0 rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
+      <section className="relative shrink-0 overflow-hidden rounded-[2rem] bg-white/70 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur sm:p-5">
+        <BambooDecoration className="pointer-events-none absolute -right-3 -top-5 size-24 rotate-12 text-emerald-500 opacity-20" />
         <p className="text-sm font-black text-pink-500">Calendar and Goals</p>
         <div className="mt-1 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
+          <div className="min-w-0 pr-14 sm:pr-20">
             <h1 className="text-3xl font-black text-zinc-950 sm:text-4xl">Calendar and Goals</h1>
             <p className="mt-2 max-w-3xl text-sm font-semibold text-zinc-500">
               Use the calendar, daily goals, and long-term goals to keep your panda days organized.
