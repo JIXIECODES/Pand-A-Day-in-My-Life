@@ -32,18 +32,64 @@ export const DEFAULT_CATEGORY_COLORS = {
 
 export const GOAL_CATEGORIES = ["Personal", "School", "Work", "Health", "Creative", "Chores", "Other"];
 
+export const STORAGE_CHANGE_EVENT = "panda-day-storage-change";
+
 let activeStorageOwner = "guest";
 
 function normalizeStorageOwner(owner = "guest") {
   return String(owner || "guest").trim().toLowerCase().replace(/[^a-z0-9@._-]/g, "-") || "guest";
 }
 
-function scopedKey(key) {
-  return `panda-day-account:${activeStorageOwner}:${key}`;
+function scopedKey(key, owner = activeStorageOwner) {
+  return `panda-day-account:${normalizeStorageOwner(owner)}:${key}`;
+}
+
+function announceStorageChange(key) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(STORAGE_CHANGE_EVENT, {
+    detail: { key, owner: activeStorageOwner },
+  }));
 }
 
 export function setStorageOwner(owner) {
   activeStorageOwner = normalizeStorageOwner(owner);
+}
+
+export function getStorageOwner() {
+  return activeStorageOwner;
+}
+
+export function getStorageSnapshot(owner = activeStorageOwner) {
+  return Object.values(STORAGE_KEYS).reduce((snapshot, key) => {
+    try {
+      const stored = localStorage.getItem(scopedKey(key, owner));
+      if (stored !== null) snapshot[key] = JSON.parse(stored);
+    } catch {
+      // Ignore one malformed local value instead of blocking the rest of the account.
+    }
+    return snapshot;
+  }, {});
+}
+
+export function replaceStorageSnapshot(owner, snapshot = {}) {
+  const safeSnapshot = snapshot && typeof snapshot === "object" && !Array.isArray(snapshot) ? snapshot : {};
+  Object.values(STORAGE_KEYS).forEach((key) => {
+    const storageKey = scopedKey(key, owner);
+    if (Object.prototype.hasOwnProperty.call(safeSnapshot, key)) {
+      localStorage.setItem(storageKey, JSON.stringify(safeSnapshot[key]));
+    } else {
+      localStorage.removeItem(storageKey);
+    }
+  });
+}
+
+export function hasMeaningfulStorageData(snapshot = {}) {
+  return Object.values(snapshot).some((value) => {
+    if (Array.isArray(value)) return value.length > 0;
+    if (value && typeof value === "object") return Object.keys(value).length > 0;
+    if (typeof value === "string") return value.trim().length > 0;
+    return value !== null && value !== undefined;
+  });
 }
 
 export function categoryKey(category = "Other") {
@@ -61,11 +107,13 @@ export function getData(key, fallback) {
 
 export function saveData(key, value) {
   localStorage.setItem(scopedKey(key), JSON.stringify(value));
+  announceStorageChange(key);
   return value;
 }
 
 export function clearData(key) {
   localStorage.removeItem(scopedKey(key));
+  announceStorageChange(key);
 }
 
 export function resetAllData() {

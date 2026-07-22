@@ -142,7 +142,7 @@ function unlockByRequirements(items, stats, currentIds) {
   return { next, newlyUnlocked };
 }
 
-export function AppProvider({ authSession = null, children, onLogout = () => {} }) {
+export function AppProvider({ authSession = null, children, initialToast = "", onLogout = () => {}, syncStatus = "local" }) {
   const initialNavigation = useMemo(() => navigationFromLocation(), []);
   const [activePage, setActivePageState] = useState(initialNavigation.page);
   const [planningTab, setPlanningTab] = useState(initialNavigation.planningTab);
@@ -177,8 +177,12 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
   const [equippedOutfit, setEquippedOutfit] = useState(() =>
     normalizeOutfitId(getData(STORAGE_KEYS.equippedOutfit, "")),
   );
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState(initialToast);
   const [resilienceState, setResilienceState] = useState(() => getResilienceState());
+
+  useEffect(() => {
+    if (initialToast) setToast(initialToast);
+  }, [initialToast]);
 
   function recordQualifyingActivity() {
     const activityDate = getLocalDateKey();
@@ -890,6 +894,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       setSelectedDate,
       setTimerGoal,
       settings,
+      syncStatus,
       startFocus,
       timerGoal,
       toast,
@@ -921,6 +926,7 @@ export function AppProvider({ authSession = null, children, onLogout = () => {} 
       scheduledGoals,
       selectedDate,
       settings,
+      syncStatus,
       timerGoal,
       toast,
       unlockedAchievements,

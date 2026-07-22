@@ -63,7 +63,7 @@ function PandaCareGuideModal({ onClose, open, returnFocusRef }) {
 }
 
 export default function Navbar({ drawerOpen, onOpenDrawer }) {
-  const { activePage, authSession, logout, pandaStats, setActivePage } = useAppContext();
+  const { activePage, authSession, logout, pandaStats, setActivePage, syncStatus } = useAppContext();
   const [profileOpen, setProfileOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const guideButtonRef = useRef(null);
@@ -75,6 +75,14 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
   const accountLabel = authSession?.isGuest
     ? "Guest panda"
     : authSession?.user?.name || "Panda profile";
+
+  const accountStatus = authSession?.isGuest
+    ? "Guest mode"
+    : syncStatus === "saving"
+      ? "Saving..."
+      : syncStatus === "offline"
+        ? "Saved locally"
+        : "Cloud account";
 
   const menuItems = useMemo(
     () => [
@@ -218,7 +226,7 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
             </span>
             <span className="hidden min-w-0 text-left sm:block">
               <span className="block truncate text-sm font-black text-zinc-950">{accountLabel}</span>
-              <span className="block text-xs font-bold text-zinc-500">{authSession?.isGuest ? "Guest mode" : "Local account"}</span>
+              <span className="block text-xs font-bold text-zinc-500">{accountStatus}</span>
             </span>
           </button>
 
@@ -231,7 +239,7 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
               <div className="border-b border-zinc-100 px-3 py-3">
                 <p className="truncate text-sm font-black text-zinc-950">{accountLabel}</p>
                 <p className="mt-1 truncate text-xs font-bold text-zinc-500">
-                  {authSession?.isGuest ? "Planning as a guest" : authSession?.user?.email || "Local panda account"}
+                  {authSession?.isGuest ? "Planning as a guest" : authSession?.user?.email || "Panda account"}
                 </p>
               </div>
 

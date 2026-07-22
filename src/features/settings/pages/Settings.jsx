@@ -20,6 +20,7 @@ export default function Settings() {
     resetAppData,
     resetCategoryColors,
     settings,
+    syncStatus,
     updateCategoryColor,
     updateSettings,
   } = useAppContext();
@@ -36,7 +37,16 @@ export default function Settings() {
             <p className="mt-1 text-sm font-semibold text-emerald-800">
               {authSession?.isGuest
                 ? "You are planning as a guest in this browser."
-                : `Signed in locally as ${authSession?.user?.name || "your panda account"}.`}
+                : `Signed in as ${authSession?.user?.name || "your panda account"}. Your progress syncs through your account.`}
+            </p>
+            <p className="mt-2 text-xs font-black text-emerald-700" role="status">
+              {authSession?.isGuest
+                ? "Saved on this device only"
+                : syncStatus === "saving"
+                  ? "Saving..."
+                  : syncStatus === "offline"
+                    ? "Saved locally; cloud sync will retry"
+                    : "Saved to your account"}
             </p>
             <button className="mt-4 rounded-full bg-emerald-500 px-5 py-3 font-black text-white" onClick={logout} type="button">
               {authSession?.isGuest ? "Exit guest mode" : "Log out"}
@@ -111,12 +121,12 @@ export default function Settings() {
           </section>
 
           <div className="rounded-3xl bg-rose-50 p-4">
-            <h2 className="font-black text-rose-900">Reset local data</h2>
-            <p className="mt-1 text-sm font-semibold text-rose-700">This clears goals, journal memories, panda stats, rewards, and settings stored in this browser.</p>
+            <h2 className="font-black text-rose-900">Reset panda data</h2>
+            <p className="mt-1 text-sm font-semibold text-rose-700">This clears goals, journal memories, panda stats, rewards, and settings for the current guest or account.</p>
             <button
               className="mt-4 rounded-full bg-rose-500 px-5 py-3 font-black text-white"
               onClick={() => {
-                if (window.confirm("Reset all local panda data?")) resetAppData();
+                if (window.confirm("Reset all panda data for this profile?")) resetAppData();
               }}
               type="button"
             >

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { AuthProvider, useAuth } from "../features/auth/AuthProvider.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import SignUpPage from "../features/auth/pages/SignUpPage.jsx";
-import { clearAuthSession, getAuthSession } from "../features/auth/utils/authStorage.js";
+import { useCloudUserData } from "../features/userData/hooks/useCloudUserData.js";
 import Navbar from "../shared/components/Navbar.jsx";
 import NavigationDrawer from "../shared/components/NavigationDrawer.jsx";
 import BambooDecoration from "../shared/components/BambooDecoration.jsx";
@@ -9,6 +10,17 @@ import { AppProvider, useAppContext } from "./AppProvider.jsx";
 import { routes } from "./routes.jsx";
 import { getSeason, getSeasonTheme } from "../shared/utils/seasonUtils.js";
 import { setStorageOwner } from "../shared/utils/storage.js";
+
+function AppLoading({ message = "Loading your panda's world..." }) {
+  return (
+    <main className="grid min-h-screen place-items-center bg-[linear-gradient(135deg,#fff8ed_0%,#ecfdf3_52%,#fdf2f8_100%)] px-4 text-center">
+      <div className="rounded-[2rem] border border-white/80 bg-white/80 p-8 shadow-2xl shadow-emerald-100/70">
+        <span aria-hidden="true" className="text-5xl">🐼</span>
+        <p className="mt-4 font-black text-zinc-800" role="status">{message}</p>
+      </div>
+    </main>
+  );
+}
 
 function AppContent() {
   const { activePage, clearToast, setActivePage, settings, toast } = useAppContext();
@@ -43,45 +55,111 @@ function AppContent() {
   );
 }
 
-function storageOwnerFromSession(session) {
-  if (!session || session.isGuest) return "guest";
-  return session.user?.email || session.user?.id || "guest";
+function storageOwnerFromSession(authSession) {
+  if (!authSession || authSession.isGuest) return "guest";
+  return authSession.user?.id || "guest";
 }
 
-function MainApp({ authSession, onLogout }) {
+function MainApp({ authSession, initialToast, onLogout, syncStatus }) {
   const storageOwner = storageOwnerFromSession(authSession);
   setStorageOwner(storageOwner);
 
   return (
-    <AppProvider authSession={authSession} key={storageOwner} onLogout={onLogout}>
+    <AppProvider
+      authSession={authSession}
+      initialToast={initialToast}
+      key={storageOwner}
+      onLogout={onLogout}
+      syncStatus={syncStatus}
+    >
       <AppContent />
     </AppProvider>
   );
 }
 
-export default function App() {
-  const [authSession, setAuthSession] = useState(() => getAuthSession());
-  const [authScreen, setAuthScreen] = useState(() => (window.location.hash.replace(/^#\/?/, "") === "signup" ? "signup" : "login"));
+function authScreenFromHash() {
+  const page = window.location.hash.replace(/^#\/?/, "").split("?")[0];
+  if (page === "signup") return "signup";
+  if (page === "login") return "login";
+  return null;
+}
 
-  function enterApp(session) {
-    setStorageOwner(storageOwnerFromSession(session));
-    setAuthSession(session);
+function AppGate() {
+  const { authSession, loading: authLoading, signOut, user } = useAuth();
+  const cloudData = useCloudUserData(user);
+  const [authScreen, setAuthScreen] = useState(() => authScreenFromHash() || "login");
+
+  useEffect(() => {
+    if (authLoading) return undefined;
+
+    function syncAuthRoute() {
+      const requestedScreen = authScreenFromHash();
+      if (authSession) {
+        if (requestedScreen) {
+          window.history.replaceState({ activePage: "home" }, "", "#home");
+        }
+        return;
+      }
+
+      if (!requestedScreen) {
+        window.history.replaceState({}, "", "#login");
+        setAuthScreen("login");
+      } else {
+        setAuthScreen(requestedScreen);
+      }
+    }
+
+    syncAuthRoute();
+    window.addEventListener("hashchange", syncAuthRoute);
+    window.addEventListener("popstate", syncAuthRoute);
+    return () => {
+      window.removeEventListener("hashchange", syncAuthRoute);
+      window.removeEventListener("popstate", syncAuthRoute);
+    };
+  }, [authLoading, authSession]);
+
+  function showAuthScreen(screen) {
+    window.history.pushState({}, "", `#${screen}`);
+    setAuthScreen(screen);
   }
 
-  function logout() {
-    setStorageOwner("guest");
-    clearAuthSession();
-    setAuthSession(null);
-    setAuthScreen("login");
+  async function logout() {
+    try {
+      await signOut();
+      setStorageOwner("guest");
+      window.history.replaceState({}, "", "#login");
+      setAuthScreen("login");
+    } catch (error) {
+      window.alert(error.message);
+    }
   }
+
+  if (authLoading) return <AppLoading message="Checking your panda account..." />;
 
   if (!authSession) {
     return authScreen === "signup" ? (
-      <SignUpPage onEnterApp={enterApp} onShowLogin={() => setAuthScreen("login")} />
+      <SignUpPage onShowLogin={() => showAuthScreen("login")} />
     ) : (
-      <LoginPage onEnterApp={enterApp} onShowSignUp={() => setAuthScreen("signup")} />
+      <LoginPage onShowSignUp={() => showAuthScreen("signup")} />
     );
   }
 
-  return <MainApp authSession={authSession} onLogout={logout} />;
+  if (user && !cloudData.ready) return <AppLoading />;
+
+  return (
+    <MainApp
+      authSession={authSession}
+      initialToast={cloudData.notice}
+      onLogout={logout}
+      syncStatus={cloudData.status}
+    />
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppGate />
+    </AuthProvider>
+  );
 }
