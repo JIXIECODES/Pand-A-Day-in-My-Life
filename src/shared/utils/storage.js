@@ -16,6 +16,7 @@ export const STORAGE_KEYS = {
   categoryColors: "categoryColors",
   dailyTasks: "panda-day-daily-tasks",
   dailyCapacity: "panda-day-daily-capacity",
+  dailyWellbeing: "panda-day-daily-wellbeing",
   resilienceReturns: "panda-day-resilience",
 };
 

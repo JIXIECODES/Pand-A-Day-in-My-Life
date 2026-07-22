@@ -164,11 +164,11 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
         </button>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
-          <div className="rounded-full border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-black text-amber-900 shadow-sm">
+          <div className="performance-stat rounded-full border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-black text-amber-900 shadow-sm">
             {pandaStats.streak} day streak
           </div>
 
-          <div className="min-w-44 rounded-full border border-emerald-100 bg-white px-3 py-2 shadow-sm">
+          <div className="performance-stat min-w-44 rounded-full border border-emerald-100 bg-white px-3 py-2 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-black text-zinc-900">Lv. {pandaStats.level}</span>
               <span className="text-xs font-black text-zinc-500">{pandaStats.xp}/{nextLevelXp} XP</span>
@@ -179,7 +179,7 @@ export default function Navbar({ drawerOpen, onOpenDrawer }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="performance-stat flex items-center gap-2 md:hidden">
           <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-900">
             {pandaStats.streak}d
           </span>
