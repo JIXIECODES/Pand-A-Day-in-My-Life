@@ -144,6 +144,51 @@ function TodayGoalsBoard({ capacity, goals, lowEnergy, onCompleteGoal, onComplet
   );
 }
 
+function CoachCard({ capacity, classicGoals, longTermGoals, todaysGoals }) {
+  const [coachOpen, setCoachOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        aria-expanded={coachOpen}
+        className="flex min-h-full w-full items-center justify-between gap-5 rounded-[1.5rem] border border-emerald-100 bg-white/80 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 active:translate-y-0 sm:p-6"
+        onClick={() => setCoachOpen(true)}
+        type="button"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-black uppercase tracking-[0.08em] text-emerald-700">{"\u{1F43C} Panda coach"}</span>
+          <span className="mt-2 block text-xl font-black leading-tight text-zinc-950 sm:text-2xl">Need help with a next step?</span>
+          <span className="mt-2 block text-sm font-semibold leading-5 text-zinc-500">Open a supportive planning conversation.</span>
+        </span>
+        <span className="shrink-0 rounded-full bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-800">Open</span>
+      </button>
+
+      {coachOpen && (
+        <section
+          aria-label="Panda coach panel"
+          className="fixed bottom-4 right-4 z-[60] max-h-[calc(100dvh-2rem)] w-[min(42rem,calc(100vw-2rem))] overflow-y-auto rounded-[2rem] border border-emerald-100 bg-white p-4 shadow-2xl shadow-zinc-950/25"
+        >
+          <div className="sticky top-0 z-10 mb-3 flex items-center justify-between rounded-2xl bg-white/95 px-2 py-2">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.08em] text-emerald-700">Panda coach</p>
+              <p className="mt-1 text-xl font-black text-zinc-950">Your supportive planning panel</p>
+            </div>
+            <button
+              aria-label="Close Panda coach"
+              className="grid size-10 place-items-center rounded-full bg-zinc-100 text-xl font-black text-zinc-700 transition hover:bg-zinc-200 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+              onClick={() => setCoachOpen(false)}
+              type="button"
+            >
+              &times;
+            </button>
+          </div>
+          <PandaCoach capacity={capacity} dailyGoals={classicGoals} longTermGoals={longTermGoals} todaysGoals={todaysGoals} />
+        </section>
+      )}
+    </>
+  );
+}
+
 export default function Home() {
   const { classicGoals, completeMinimumWin, completeScheduledGoal, longTermGoals, pandaStats, resilienceState, scheduledGoals, setActivePage } = useAppContext();
   const initial = useMemo(() => getDailyWellbeing(), []);
@@ -182,8 +227,9 @@ export default function Home() {
         <h1 className="mt-1 text-3xl font-black text-zinc-950 sm:text-4xl">What does your panda get to remember today?</h1>
       </header>
 
-      <section>
+      <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]">
         <GentleCheckIn initialFeeling={initial.feeling} onFeelingChange={updateFeeling} />
+        <CoachCard capacity={capacity} classicGoals={classicGoals} longTermGoals={longTermGoals} todaysGoals={todaysGoals} />
       </section>
 
       <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.9fr)]">
@@ -196,7 +242,6 @@ export default function Home() {
         <CalmCorner onOpenJournal={() => setActivePage("journal")} />
       </section>
 
-      <PandaCoach capacity={capacity} dailyGoals={classicGoals} longTermGoals={longTermGoals} todaysGoals={todaysGoals} />
     </main>
   );
 }
