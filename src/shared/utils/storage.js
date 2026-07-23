@@ -305,7 +305,18 @@ export function saveCategoryColors(colors) {
 }
 
 export function getPandaStats() {
-  return { ...DEFAULT_PANDA_STATS, ...getData(STORAGE_KEYS.pandaStats, DEFAULT_PANDA_STATS) };
+  const storedStats = getData(STORAGE_KEYS.pandaStats, {});
+  const stats = storedStats && typeof storedStats === "object" && !Array.isArray(storedStats)
+    ? storedStats
+    : {};
+
+  return {
+    ...DEFAULT_PANDA_STATS,
+    ...stats,
+    level: Number.isInteger(stats.level) && stats.level >= 1 ? stats.level : DEFAULT_PANDA_STATS.level,
+    streak: Number.isInteger(stats.streak) && stats.streak >= 0 ? stats.streak : 0,
+    xp: Number.isFinite(stats.xp) && stats.xp >= 0 ? stats.xp : 0,
+  };
 }
 
 export function getScheduledGoals() {

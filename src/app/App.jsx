@@ -60,7 +60,7 @@ function storageOwnerFromSession(authSession) {
   return authSession.user?.id || "guest";
 }
 
-function MainApp({ authSession, initialToast, onLogout, syncStatus }) {
+function MainApp({ authSession, cloudDataReady, initialToast, onLogout, syncStatus }) {
   const storageOwner = storageOwnerFromSession(authSession);
   setStorageOwner(storageOwner);
 
@@ -68,7 +68,7 @@ function MainApp({ authSession, initialToast, onLogout, syncStatus }) {
     <AppProvider
       authSession={authSession}
       initialToast={initialToast}
-      key={storageOwner}
+      key={`${storageOwner}:${cloudDataReady ? "ready" : "loading"}`}
       onLogout={onLogout}
       syncStatus={syncStatus}
     >
@@ -134,7 +134,7 @@ function AppGate() {
     }
   }
 
-  if (authLoading) return <AppLoading message="Checking your panda account..." />;
+  if (authLoading && !authSession) return <AppLoading message="Checking your panda account..." />;
 
   if (!authSession) {
     return authScreen === "signup" ? (
@@ -144,11 +144,11 @@ function AppGate() {
     );
   }
 
-  if (user && !cloudData.ready) return <AppLoading />;
 
   return (
     <MainApp
       authSession={authSession}
+      cloudDataReady={cloudData.ready}
       initialToast={cloudData.notice}
       onLogout={logout}
       syncStatus={cloudData.status}
