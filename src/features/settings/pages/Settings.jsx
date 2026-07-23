@@ -1,16 +1,11 @@
 import React from "react";
 import { useAppContext } from "../../../app/AppProvider.jsx";
 import { categoryKey, GOAL_CATEGORIES } from "../../../shared/utils/storage.js";
+import { getTimeZoneLabel, TIME_ZONE_GROUPS } from "../../../shared/utils/timeZone.js";
 
-const timezones = [
-  "Local",
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "Europe/London",
-  "Asia/Tokyo",
-];
+const listedTimeZones = new Set(
+  TIME_ZONE_GROUPS.flatMap((group) => group.options.map((option) => option.value)),
+);
 
 export default function Settings() {
   const {
@@ -24,6 +19,7 @@ export default function Settings() {
     updateCategoryColor,
     updateSettings,
   } = useAppContext();
+  const currentTimeZoneIsListed = listedTimeZones.has(settings.timezone);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
@@ -53,17 +49,31 @@ export default function Settings() {
             </button>
           </div>
 
-          <label className="block rounded-3xl bg-zinc-50 p-4">
-            <span className="text-sm font-black text-zinc-700">Timezone</span>
+          <label className="block rounded-3xl bg-zinc-50 p-4" htmlFor="time-zone-setting">
+            <span className="text-sm font-black text-zinc-700">Time zone</span>
+            <span className="mt-1 block text-xs font-bold text-zinc-500">
+              Calendar dates and Daily Schedule times use this location. Daylight-saving changes are handled automatically.
+            </span>
             <select
-              className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 font-bold outline-none focus:border-pink-300"
+              className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 font-bold outline-none focus:border-pink-300 focus:ring-4 focus:ring-pink-100"
+              id="time-zone-setting"
               onChange={(event) => updateSettings({ timezone: event.target.value })}
               value={settings.timezone}
             >
-              {timezones.map((timezone) => (
-                <option key={timezone} value={timezone}>{timezone}</option>
+              {!currentTimeZoneIsListed && (
+                <option value={settings.timezone}>{getTimeZoneLabel(settings.timezone)}</option>
+              )}
+              {TIME_ZONE_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
+            <span className="mt-2 block text-xs font-black text-emerald-700" aria-live="polite">
+              Times shown in {getTimeZoneLabel(settings.timezone)}
+            </span>
           </label>
 
           <button

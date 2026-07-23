@@ -1,4 +1,5 @@
 import { DEFAULT_PANDA_STATS } from "../../features/panda/utils/pandaLogic.js";
+import { getTimeZoneFallback, isValidTimeZone, saveTimeZoneFallback } from "./timeZone.js";
 
 export const STORAGE_KEYS = {
   goals: "panda-day-goals",
@@ -284,16 +285,30 @@ export function deleteLongTermGoal(id) {
 }
 
 export function getSettings() {
-  return getData(STORAGE_KEYS.settings, {
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Local",
+  const storedSettings = getData(STORAGE_KEYS.settings, {});
+  const safeSettings = storedSettings && typeof storedSettings === "object" && !Array.isArray(storedSettings)
+    ? storedSettings
+    : {};
+  const timezone = isValidTimeZone(safeSettings.timezone)
+    ? safeSettings.timezone
+    : getTimeZoneFallback();
+
+  saveTimeZoneFallback(timezone);
+  return {
     notificationsEnabled: false,
     theme: "seasonal",
     timerDurationMinutes: 25,
-  });
+    ...safeSettings,
+    timezone,
+  };
 }
 
 export function saveSettings(settings) {
-  return saveData(STORAGE_KEYS.settings, settings);
+  const safeSettings = settings && typeof settings === "object" && !Array.isArray(settings) ? settings : {};
+  const timezone = saveTimeZoneFallback(
+    isValidTimeZone(safeSettings.timezone) ? safeSettings.timezone : getTimeZoneFallback(),
+  );
+  return saveData(STORAGE_KEYS.settings, { ...safeSettings, timezone });
 }
 
 export function getCategoryColors() {

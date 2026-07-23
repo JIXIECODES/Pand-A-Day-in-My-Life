@@ -1,11 +1,11 @@
 import React from "react";
-import { isPastDeadline, todayKey } from "../utils/dateUtils.js";
+import { isPastDeadline } from "../utils/dateUtils.js";
 
-export default function DayCell({ day, goals, isCurrentMonth, onSelect, scheduledGoals = [] }) {
+export default function DayCell({ day, goals, isCurrentMonth, onSelect, scheduledGoals = [], todayDateKey }) {
   const dateKey = day.format("YYYY-MM-DD");
   const completed = goals.filter((goal) => goal.completed).length;
   const hasGentleMiss = goals.some((goal) => !goal.completed && isPastDeadline(dateKey, goal.deadline));
-  const isToday = dateKey === todayKey();
+  const isToday = dateKey === todayDateKey;
 
   return (
     <button

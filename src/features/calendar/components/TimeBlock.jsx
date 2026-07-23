@@ -14,7 +14,7 @@ function timeToMinutes(time) {
   return hours * 60 + minutes;
 }
 
-export default function TimeBlock({ hour, scheduledGoals, onEdit }) {
+export default function TimeBlock({ currentTime = null, hour, scheduledGoals, onEdit }) {
   const start = hour * 60;
   const end = start + 60;
   const goals = scheduledGoals.filter((goal) => {
@@ -24,9 +24,33 @@ export default function TimeBlock({ hour, scheduledGoals, onEdit }) {
   });
 
   return (
-    <div className="grid gap-3 border-t border-white/80 py-3 sm:grid-cols-[6rem_1fr]">
-      <div className="text-sm font-black text-zinc-500">{hourLabel(hour)}</div>
-      <div className="min-h-20 rounded-2xl bg-white/60 p-2">
+    <div
+      aria-current={currentTime ? "time" : undefined}
+      className={[
+        "relative grid gap-3 border-t border-white/80 px-1 py-3 transition-colors sm:grid-cols-[6rem_1fr]",
+        currentTime ? "rounded-xl bg-pink-50/75 ring-1 ring-inset ring-pink-100" : "",
+      ].join(" ")}
+      data-schedule-hour={hour}
+    >
+      {currentTime && (
+        <>
+          <span aria-live="polite" className="sr-only" role="status">{currentTime.ariaLabel}</span>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-1 z-20 flex -translate-y-1/2 items-center"
+            style={{ top: `${currentTime.minutePercent}%` }}
+          >
+            <span className="size-2.5 shrink-0 rounded-full bg-pink-600 ring-4 ring-pink-100" />
+            <span className="ml-1 shrink-0 rounded-full bg-pink-600 px-2 py-0.5 text-[0.65rem] font-black text-white shadow-sm">
+              {currentTime.label}
+            </span>
+            <span className="ml-1 h-0.5 flex-1 bg-pink-500/85" />
+          </div>
+        </>
+      )}
+
+      <div className={`text-sm font-black ${currentTime ? "text-pink-700" : "text-zinc-500"}`}>{hourLabel(hour)}</div>
+      <div className={`min-h-20 rounded-2xl p-2 ${currentTime ? "bg-white/85" : "bg-white/60"}`}>
         {goals.length > 0 ? (
           <div className="grid gap-2">
             {goals.map((goal) => (

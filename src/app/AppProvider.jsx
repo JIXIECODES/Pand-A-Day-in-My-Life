@@ -50,6 +50,10 @@ import {
   updateLongTermGoal,
   updateScheduledGoal,
 } from "../shared/utils/storage.js";
+import {
+  clearTimeZoneFallback,
+  getZonedDateKey,
+} from "../shared/utils/timeZone.js";
 
 const AppContext = createContext(null);
 
@@ -156,8 +160,10 @@ export function AppProvider({ authSession = null, children, initialToast = "", o
   );
   const [pandaStats, setPandaStats] = useState(() => getPandaStats());
   const [settings, setSettingsState] = useState(() => getSettings());
-  const [selectedDate, setSelectedDate] = useState(() => todayKey());
-  const [currentMonth, setCurrentMonth] = useState(() => dayjs());
+  const [selectedDate, setSelectedDate] = useState(() =>
+    getZonedDateKey(new Date(), settings.timezone),
+  );
+  const [currentMonth, setCurrentMonth] = useState(() => dayjs(selectedDate));
   const [timerGoal, setTimerGoal] = useState(null);
   const [dailyRewards, setDailyRewards] = useState(() =>
     getData(STORAGE_KEYS.dailyRewards, { lastClaimedDate: "", lastReward: null }),
@@ -806,8 +812,15 @@ export function AppProvider({ authSession = null, children, initialToast = "", o
   }
 
   function updateSettings(updates) {
+    const previousToday = getZonedDateKey(new Date(), settings.timezone);
     const next = saveSettings({ ...settings, ...updates });
     setSettingsState(next);
+
+    if (updates.timezone && selectedDate === previousToday) {
+      const zonedToday = getZonedDateKey(new Date(), next.timezone);
+      setSelectedDate(zonedToday);
+      setCurrentMonth(dayjs(zonedToday));
+    }
   }
 
   function updateCategoryColor(category, color) {
@@ -827,6 +840,9 @@ export function AppProvider({ authSession = null, children, initialToast = "", o
 
   function resetAppData() {
     resetAllData();
+    clearTimeZoneFallback();
+    const resetSettings = getSettings();
+    const zonedToday = getZonedDateKey(new Date(), resetSettings.timezone);
     setGoalsByDate({});
     setClassicGoals([]);
     setLongTermGoals([]);
@@ -837,6 +853,9 @@ export function AppProvider({ authSession = null, children, initialToast = "", o
     setUnlockedAchievements([]);
     setScheduledGoals([]);
     setCategoryColors(getCategoryColors());
+    setSettingsState(resetSettings);
+    setSelectedDate(zonedToday);
+    setCurrentMonth(dayjs(zonedToday));
     setDailyRewards({ lastClaimedDate: "", lastReward: null });
     setDailyTasks(saveData(STORAGE_KEYS.dailyTasks, getDailyTaskStateForDate(null, todayKey())));
     setEquippedOutfit(NO_OUTFIT_ID);
